@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.7.1
+Created-By: 20.12-b01 (Sun Microsystems Inc.)
+Main-Class: com.amazon.external.elasticmapreduce.s3distcp.Main
+
+Name: com/amazon/external/elasticmapreduce/s3distcp
+Implementation-Vendor: Amazon
+Implementation-Title: S3DistCp
+Version: ${BRAZIL_PACKAGE_VERSION}
+
