@@ -73,7 +73,6 @@
 /*  96 */         if (isSupportedType(returnClass))
 /*     */         {
 /*     */           String returnClassName;
-/*     */           String returnClassName;
 /*  98 */           if (returnClass.isAssignableFrom(Priority.class))
 /*  99 */             returnClassName = "java.lang.String";
 /*     */           else {

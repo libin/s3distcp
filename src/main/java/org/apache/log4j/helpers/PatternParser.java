@@ -204,21 +204,18 @@
 /* 251 */       if (dOpt != null)
 /* 252 */         dateFormatStr = dOpt;
 /*     */       DateFormat df;
-/*     */       DateFormat df;
 /* 254 */       if (dateFormatStr.equalsIgnoreCase("ISO8601"))
 /*     */       {
 /* 256 */         df = new ISO8601DateFormat();
 /*     */       }
 /*     */       else
 /*     */       {
-/*     */         DateFormat df;
 /* 257 */         if (dateFormatStr.equalsIgnoreCase("ABSOLUTE"))
 /*     */         {
 /* 259 */           df = new AbsoluteTimeDateFormat();
 /*     */         }
 /*     */         else
 /*     */         {
-/*     */           DateFormat df;
 /* 260 */           if (dateFormatStr.equalsIgnoreCase("DATE"))
 /*     */           {
 /* 262 */             df = new DateTimeDateFormat();

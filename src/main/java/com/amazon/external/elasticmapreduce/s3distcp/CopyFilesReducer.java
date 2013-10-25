@@ -124,7 +124,6 @@
 /* 131 */     if (!this.outputCodec.equalsIgnoreCase("keep"))
 /*     */     {
 /*     */       String suffix;
-/*     */       String suffix;
 /* 133 */       if (this.outputCodec.equalsIgnoreCase("gzip")) {
 /* 134 */         suffix = groupIndex + ".gz";
 /*     */       }

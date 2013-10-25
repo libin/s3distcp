@@ -71,7 +71,7 @@
 /* 152 */     long startTime = System.currentTimeMillis();
 /*     */ 
 /* 154 */     if (executionContext == null) throw new AmazonClientException("Internal SDK Error: No execution context parameter specified.");
-/* 155 */     List requestHandlers = executionContext.getRequestHandlers();
+/* 155 */     List<RequestHandler> requestHandlers = executionContext.getRequestHandlers();
 /* 156 */     if (requestHandlers == null) requestHandlers = new ArrayList();
 /*     */ 
 /* 159 */     for (RequestHandler requestHandler : requestHandlers) {
@@ -80,7 +80,7 @@
 /*     */     try
 /*     */     {
 /* 164 */       TimingInfo timingInfo = new TimingInfo(startTime);
-/* 165 */       Object t = executeHelper(request, responseHandler, errorResponseHandler, executionContext);
+/* 165 */       T t = executeHelper(request, responseHandler, errorResponseHandler, executionContext);
 /* 166 */       timingInfo.setEndTime(System.currentTimeMillis());
 /*     */ 
 /* 168 */       for (RequestHandler handler : requestHandlers)
@@ -331,7 +331,7 @@
 /*     */ 
 /* 530 */       AWSRequestMetrics awsRequestMetrics = executionContext.getAwsRequestMetrics();
 /* 531 */       awsRequestMetrics.startEvent(AWSRequestMetrics.Field.ResponseProcessingTime.name());
-/* 532 */       AmazonWebServiceResponse awsResponse = (AmazonWebServiceResponse)responseHandler.handle(httpResponse);
+/* 532 */       AmazonWebServiceResponse<T> awsResponse = (AmazonWebServiceResponse)responseHandler.handle(httpResponse);
 /* 533 */       awsRequestMetrics.endEvent(AWSRequestMetrics.Field.ResponseProcessingTime.name());
 /* 534 */       if (countingInputStream != null) {
 /* 535 */         awsRequestMetrics.setCounter(AWSRequestMetrics.Field.BytesProcessed.name(), countingInputStream.getByteCount());
@@ -426,7 +426,7 @@
 /* 665 */       if (isThrottlingException(previousException)) {
 /* 666 */         scaleFactor = 500 + random.nextInt(100);
 /*     */       }
-/* 668 */       delay = ()(Math.pow(2.0D, retries) * scaleFactor);
+/* 668 */       delay = (long)(Math.pow(2.0D, retries) * scaleFactor);
 /*     */     }
 /*     */ 
 /* 671 */     delay = Math.min(delay, 20000L);

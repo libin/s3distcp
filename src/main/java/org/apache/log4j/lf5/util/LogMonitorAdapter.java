@@ -30,7 +30,7 @@
 /*     */   {
 /*     */     LogMonitorAdapter adapter;
 /*  78 */     if (loglevels == 1) {
-/*  79 */       LogMonitorAdapter adapter = newInstance(LogLevel.getJdk14Levels());
+/*  79 */       adapter = newInstance(LogLevel.getJdk14Levels());
 /*  80 */       adapter.setDefaultLevel(LogLevel.FINEST);
 /*  81 */       adapter.setSevereLevel(LogLevel.SEVERE);
 /*     */     } else {

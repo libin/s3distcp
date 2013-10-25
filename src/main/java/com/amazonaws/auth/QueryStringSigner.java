@@ -54,7 +54,7 @@
 /*     */   private String calculateStringToSignV1(Map<String, String> parameters)
 /*     */   {
 /* 104 */     StringBuilder data = new StringBuilder();
-/* 105 */     SortedMap sorted = new TreeMap(String.CASE_INSENSITIVE_ORDER);
+/* 105 */     SortedMap<String,String> sorted = new TreeMap(String.CASE_INSENSITIVE_ORDER);
 /*     */ 
 /* 107 */     sorted.putAll(parameters);
 /*     */ 

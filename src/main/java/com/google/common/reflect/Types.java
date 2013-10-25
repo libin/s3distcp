@@ -156,7 +156,7 @@
 /* 440 */     return Array.newInstance(componentType, 0).getClass();
 /*     */   }
 /*     */ 
-/*     */   static abstract enum JavaVersion
+/*     */   static  enum JavaVersion
 /*     */   {
 /* 446 */     JAVA6, 
 /*     */ 
