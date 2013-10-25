@@ -526,6 +526,7 @@
 /* 193 */           ManifestEntry entry = (ManifestEntry)gson.fromJson(line, ManifestEntry.class);
 /* 194 */           manifest.put(entry.baseName, entry);
 /*     */         }
+                  scanner.close();
 /*     */       } catch (Exception e) {
 /* 197 */         LOG.error("Failed to load manifest '" + manifestPath + "'");
 /*     */       } finally {

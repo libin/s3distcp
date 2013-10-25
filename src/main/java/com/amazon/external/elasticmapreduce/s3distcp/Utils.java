@@ -17,13 +17,11 @@
 /*    */     {
 /* 17 */       long remainder = value % 58L;
 /*    */       int c;
-/*    */       int c;
 /* 18 */       if (remainder < 24L) {
 /* 19 */         c = 'a' + (char)(int)remainder;
 /*    */       }
 /*    */       else
 /*    */       {
-/*    */         int c;
 /* 21 */         if (remainder < 48L) {
 /* 22 */           c = 'A' + (char)(int)(remainder - 24L);
 /*    */         }

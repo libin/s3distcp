@@ -61,7 +61,7 @@
 /*     */     String stringToSign;
 /*  91 */     if (isHttps) {
 /*  92 */       request.addHeader("x-amz-nonce", nonce);
-/*  93 */       String stringToSign = new StringBuilder().append(date).append(nonce).toString();
+/*  93 */       stringToSign = new StringBuilder().append(date).append(nonce).toString();
 /*     */       try {
 /*  95 */         bytesToSign = stringToSign.getBytes("UTF-8");
 /*     */       } catch (UnsupportedEncodingException e) {
@@ -139,7 +139,7 @@
 /*     */     }
 /*     */ 
 /* 182 */     StringBuilder builder = new StringBuilder();
-/* 183 */     for (Map.Entry entry : sortedHeaderMap.entrySet()) {
+/* 183 */     for (Map.Entry entry : (Iterable<Map.Entry>)sortedHeaderMap.entrySet()) {
 /* 184 */       builder.append(((String)entry.getKey()).toLowerCase()).append(":").append((String)entry.getValue()).append("\n");
 /*     */     }
 /*     */ 

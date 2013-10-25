@@ -135,7 +135,7 @@
 /*     */   }
 /*     */ 
 /*     */   private String getCanonicalizedHeaderString(Request<?> request) {
-/* 205 */     List sortedHeaders = new ArrayList();
+/* 205 */     List<String> sortedHeaders = new ArrayList();
 /* 206 */     sortedHeaders.addAll(request.getHeaders().keySet());
 /* 207 */     Collections.sort(sortedHeaders, String.CASE_INSENSITIVE_ORDER);
 /*     */ 
@@ -149,7 +149,7 @@
 /*     */   }
 /*     */ 
 /*     */   private String getSignedHeadersString(Request<?> request) {
-/* 219 */     List sortedHeaders = new ArrayList();
+/* 219 */     List<String> sortedHeaders = new ArrayList();
 /* 220 */     sortedHeaders.addAll(request.getHeaders().keySet());
 /* 221 */     Collections.sort(sortedHeaders, String.CASE_INSENSITIVE_ORDER);
 /*     */ 
