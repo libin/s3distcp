@@ -129,7 +129,6 @@
 /*     */       }
 /*     */       else
 /*     */       {
-/*     */         String suffix;
 /* 135 */         if (this.outputCodec.equalsIgnoreCase("none"))
 /* 136 */           suffix = groupIndex;
 /*     */         else
