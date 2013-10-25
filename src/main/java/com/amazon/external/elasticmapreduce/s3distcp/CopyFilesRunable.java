@@ -1,7 +1,7 @@
 /*     */ package com.amazon.external.elasticmapreduce.s3distcp;
 /*     */ 
-/*     */ import amazon.emr.metrics.MetricsSaver;
-/*     */ import amazon.emr.metrics.MetricsSaver.StopWatch;
+/*     */ //import amazon.emr.metrics.MetricsSaver;
+/*     */ //import amazon.emr.metrics.MetricsSaver.StopWatch;
 /*     */ import com.amazonaws.services.s3.AmazonS3Client;
 /*     */ import com.amazonaws.services.s3.model.ObjectMetadata;
 /*     */ import java.io.File;
@@ -46,7 +46,7 @@
 /*     */   private long copyStream(InputStream inputStream, OutputStream outputStream, MessageDigest md) throws IOException
 /*     */   {
 /*  67 */     long bytesCopied = 0L;
-/*  68 */     MetricsSaver.StopWatch stopWatch = new MetricsSaver.StopWatch();
+/*  68 */     //MetricsSaver.StopWatch stopWatch = new MetricsSaver.StopWatch();
 /*     */     try {
 /*  70 */       int len = 0;
 /*  71 */       byte[] buffer = new byte[this.reducer.getBufferSize()];
@@ -56,10 +56,10 @@
 /*  75 */         this.reducer.progress();
 /*  76 */         bytesCopied += len;
 /*     */       }
-/*  78 */       MetricsSaver.addValue("S3DistCpCopyStreamDelay", stopWatch.elapsedTime());
-/*  79 */       MetricsSaver.addValue("S3DistCpCopyStreamBytes", bytesCopied);
+/*  78 */       //MetricsSaver.addValue("S3DistCpCopyStreamDelay", stopWatch.elapsedTime());
+/*  79 */       //MetricsSaver.addValue("S3DistCpCopyStreamBytes", bytesCopied);
 /*     */     } catch (Exception e) {
-/*  81 */       MetricsSaver.addValueWithError("S3DistCpCopyStreamDelay", stopWatch.elapsedTime(), e);
+/*  81 */       //MetricsSaver.addValueWithError("S3DistCpCopyStreamDelay", stopWatch.elapsedTime(), e);
 /*  82 */       throw new IOException("exception raised while copying data file", e);
 /*     */     }
 /*  84 */     return bytesCopied;
@@ -222,15 +222,15 @@
 /*     */       else {
 /* 245 */         int retries = this.reducer.getNumTransferRetries();
 /* 246 */         while (retries > 0) {
-/* 247 */           MetricsSaver.StopWatch stopWatch = new MetricsSaver.StopWatch();
+/* 247 */           //MetricsSaver.StopWatch stopWatch = new MetricsSaver.StopWatch();
 /*     */           try {
 /* 249 */             retries--;
 /* 250 */             s3.putObject(outUri.getHost(), outUri.getPath(), this.reducer.openInputStream(curTempPath), meta);
-/* 251 */             MetricsSaver.addValue("S3WriteDelay", stopWatch.elapsedTime());
-/* 252 */             MetricsSaver.addValue("S3WriteBytes", status.getLen());
+/* 251 */             //MetricsSaver.addValue("S3WriteDelay", stopWatch.elapsedTime());
+/* 252 */             //MetricsSaver.addValue("S3WriteBytes", status.getLen());
 /*     */           }
 /*     */           catch (Exception e) {
-/* 255 */             MetricsSaver.addValueWithError("S3WriteDelay", stopWatch.elapsedTime(), e);
+/* 255 */             //MetricsSaver.addValueWithError("S3WriteDelay", stopWatch.elapsedTime(), e);
 /*     */           }
 /*     */         }
 /*     */       }

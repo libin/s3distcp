@@ -1,7 +1,7 @@
 /*     */ package com.amazon.external.elasticmapreduce.s3distcp;
 /*     */ 
 /*     */ import com.google.common.collect.Lists;
-/*     */ import com.hadoop.compression.lzo.LzopCodec;
+/*     */ //import com.hadoop.compression.lzo.LzopCodec;
 /*     */ import java.io.IOException;
 /*     */ import java.io.InputStream;
 /*     */ import java.io.OutputStream;
@@ -129,7 +129,6 @@
 /*     */       }
 /*     */       else
 /*     */       {
-/*     */         String suffix;
 /* 135 */         if (this.outputCodec.equalsIgnoreCase("none"))
 /* 136 */           suffix = groupIndex;
 /*     */         else
@@ -230,11 +229,13 @@
 /* 232 */         SnappyCodec codec = new SnappyCodec();
 /* 233 */         codec.setConf(getConf());
 /* 234 */         return codec.createInputStream(inputStream);
-/* 235 */       }if ((suffix.equalsIgnoreCase("lzop")) || (suffix.equalsIgnoreCase("lzo"))) {
-/* 236 */         LzopCodec codec = new LzopCodec();
-/* 237 */         codec.setConf(getConf());
-/* 238 */         return codec.createInputStream(inputStream);
-/*     */       }
+/* 235 */       }
+
+               // if ((suffix.equalsIgnoreCase("lzop")) || (suffix.equalsIgnoreCase("lzo"))) {
+/* 236 */      //   LzopCodec codec = new LzopCodec();
+/* 237 */      //   codec.setConf(getConf());
+/* 238 */      //   return codec.createInputStream(inputStream);
+/*     */      // }
 /*     */     }
 /* 241 */     return inputStream;
 /*     */   }
@@ -244,11 +245,12 @@
 /* 246 */     OutputStream outputStream = outputFs.create(outputFilePath, this.reporter);
 /* 247 */     if ((this.outputCodec.equalsIgnoreCase("gzip")) || (this.outputCodec.equalsIgnoreCase("gz")))
 /* 248 */       return new GZIPOutputStream(outputStream);
-/* 249 */     if (this.outputCodec.equalsIgnoreCase("lzo")) {
-/* 250 */       LzopCodec codec = new LzopCodec();
-/* 251 */       codec.setConf(getConf());
-/* 252 */       return codec.createOutputStream(outputStream);
-/* 253 */     }if (this.outputCodec.equalsIgnoreCase("snappy")) {
+/* 249 */     //if (this.outputCodec.equalsIgnoreCase("lzo")) {
+/* 250 */       //LzopCodec codec = new LzopCodec();
+/* 251 */       //codec.setConf(getConf());
+/* 252 */       //return codec.createOutputStream(outputStream);
+/* 253 */     //}
+              if (this.outputCodec.equalsIgnoreCase("snappy")) {
 /* 254 */       SnappyCodec codec = new SnappyCodec();
 /* 255 */       codec.setConf(getConf());
 /* 256 */       return codec.createOutputStream(outputStream);
