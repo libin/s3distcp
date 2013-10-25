@@ -116,7 +116,8 @@
 /* 428 */           throw e;
 /*     */         }
 /* 430 */         LOG.warn("Error listing objects: " + e.getMessage(), e);
-/* 431 */       }continue;
+                  continue;
+/* 431 */       }
 /*     */ 
 /* 434 */       for (S3ObjectSummary object : objects.getObjectSummaries())
 /* 435 */         if (object.getKey().endsWith("/")) {
@@ -138,7 +139,7 @@
 /* 453 */     String SecretAccessKey = conf.get("fs.s3n.awsSecretAccessKey");
 /*     */     AmazonS3Client s3Client;
 /* 455 */     if ((accessKeyId != null) && (SecretAccessKey != null)) {
-/* 456 */       AmazonS3Client s3Client = new AmazonS3Client(new BasicAWSCredentials(accessKeyId, SecretAccessKey));
+/* 456 */       s3Client = new AmazonS3Client(new BasicAWSCredentials(accessKeyId, SecretAccessKey));
 /* 457 */       LOG.info("Created AmazonS3Client with conf KeyId " + accessKeyId);
 /*     */     } else {
 /* 459 */       InstanceProfileCredentialsProvider provider = new InstanceProfileCredentialsProvider();
