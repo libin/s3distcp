@@ -1,7 +1,7 @@
 /*     */ package com.amazon.external.elasticmapreduce.s3distcp;
 /*     */ 
-/*     */ import amazon.emr.metrics.MetricsSaver;
-/*     */ import amazon.emr.metrics.MetricsSaver.StopWatch;
+/*     */ //import amazon.emr.metrics.MetricsSaver;
+/*     */ //import amazon.emr.metrics.MetricsSaver.StopWatch;
 /*     */ import com.amazonaws.services.s3.AmazonS3;
 /*     */ import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
 /*     */ import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
@@ -33,7 +33,6 @@
 /*     */ import org.apache.commons.logging.Log;
 /*     */ import org.apache.commons.logging.LogFactory;
 /*     */ import org.apache.hadoop.fs.common.Abortable;
-/*     */ import org.apache.hadoop.fs.s3native.ProgressableResettableBufferedFileInputStream;
 /*     */ import org.apache.hadoop.io.retry.RetryPolicies;
 /*     */ import org.apache.hadoop.io.retry.RetryPolicy;
 /*     */ import org.apache.hadoop.io.retry.RetryProxy;
@@ -200,7 +199,7 @@
 /*     */ 
 /* 220 */       UploadPartRequest request = new UploadPartRequest().withBucketName(MultipartUploadOutputStream.this.bucketName).withKey(MultipartUploadOutputStream.this.key).withUploadId(MultipartUploadOutputStream.this.uploadId).withInputStream(is).withPartNumber(this.partNumber).withPartSize(this.partFile.length()).withMD5Digest(this.md5sum);
 /*     */ 
-/* 230 */       MetricsSaver.StopWatch stopWatch = new MetricsSaver.StopWatch();
+/* 230 */       //MetricsSaver.StopWatch stopWatch = new MetricsSaver.StopWatch();
 /*     */       UploadPartResult result;
 /*     */       try
 /*     */       {
@@ -208,10 +207,10 @@
 /*     */ 
 /* 235 */         MultipartUploadOutputStream.LOG.info(message);
 /* 236 */         result = MultipartUploadOutputStream.this.s3.uploadPart(request);
-/* 237 */         MetricsSaver.addValue("S3WriteDelay", stopWatch.elapsedTime());
-/* 238 */         MetricsSaver.addValue("S3WriteBytes", this.partFile.length());
+/* 237 */         //MetricsSaver.addValue("S3WriteDelay", stopWatch.elapsedTime());
+/* 238 */         //MetricsSaver.addValue("S3WriteBytes", this.partFile.length());
 /*     */       } catch (Exception e) {
-/* 240 */         MetricsSaver.addValueWithError("S3WriteDelay", stopWatch.elapsedTime(), e);
+/* 240 */         //MetricsSaver.addValueWithError("S3WriteDelay", stopWatch.elapsedTime(), e);
 /* 241 */         throw e;
 /*     */       } finally {
 /*     */         try {
