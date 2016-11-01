@@ -257,7 +257,7 @@
 /*     */ 
 /*     */     try
 /*     */     {
-/* 582 */       Map previousManifest = null;
+/* 582 */       Manifest previousManifest = null;
 /* 583 */       if (!options.copyFromManifest.booleanValue()) {
 /* 584 */         previousManifest = options.getPreviousManifest();
 /*     */       }
@@ -305,7 +305,7 @@
 /*     */     try
 /*     */     {
 /* 635 */       if ((options.getCopyFromManifest()) && (options.getPreviousManifest() != null)) {
-/* 636 */         for (ManifestEntry entry : options.getPreviousManifest().values())
+/* 636 */         for (ManifestEntry entry : options.getPreviousManifest().getEntries())
 /* 637 */           fileInfoListing.add(new Path(entry.path), new Path(entry.srcDir), entry.size);
 /*     */       }
 /*     */       else {
@@ -327,6 +327,16 @@
 /* 656 */         job.setLong("s3DistCp.copyfiles.reducer.targetSize", targetSize * 1024L * 1024L);
 /*     */       } catch (Exception e) {
 /* 658 */         System.err.println("Error parsing target file size");
+/* 659 */         System.exit(2);
+/*     */       }
+/*     */     }
+/*     */ 
+/* 653 */     if (options.getFileBuckets() != null) {
+/*     */       try {
+/* 655 */         int fileBuckets = options.getFileBuckets().intValue();
+/* 656 */         job.setLong("s3DistCp.copyfiles.mapper.fileBuckets", fileBuckets);
+/*     */       } catch (Exception e) {
+/* 658 */         System.err.println("Error parsing file buckets");
 /* 659 */         System.exit(2);
 /*     */       }
 /*     */     }
@@ -360,6 +370,8 @@
 /* 689 */       tempFs.delete(tempPath, true);
 /* 690 */       if (manifestFile != null) {
 /* 691 */         FileSystem destFs = FileSystem.get(destPath.toUri(), job);
+destFs.exists(destPath);
+destFs.mkdirs(destPath);
 /* 692 */         destFs.copyFromLocalFile(new Path(manifestFile.getAbsolutePath()), destPath);
 /* 693 */         manifestFile.delete();
 /*     */       }
@@ -417,8 +429,9 @@
 /*     */     String manifestPath;
 /*     */     Integer multipartUploadPartSize;
 /*  85 */     Long startingIndex = Long.valueOf(0L);
-/*     */     Map<String, ManifestEntry> previousManifest;
+/*     */     Manifest previousManifest;
 /*  87 */     Boolean copyFromManifest = Boolean.valueOf(false);
+/*     */     Integer fileBuckets;
 /*  88 */     boolean helpDefined = false;
 /*     */ 
 /*     */     public S3DistCpOptions()
@@ -445,6 +458,7 @@
 /* 111 */       OptionWithArg outputManifest = options.withArg("--outputManifest", "The name of the manifest file");
 /* 112 */       OptionWithArg previousManifest = options.withArg("--previousManifest", "The path to an existing manifest file");
 /* 113 */       SimpleOption copyFromManifest = options.noArg("--copyFromManifest", "Copy from a manifest instead of listing a directory");
+/* 103 */       OptionWithArg fileBucketsOption = options.withArg("--fileBuckets", "Number of buckets for output files (overrides '--groupBy' option)");
 /* 114 */       options.parseArguments(args);
 /* 115 */       if (helpOption.defined()) {
 /* 116 */         LOG.info(options.helpText());
@@ -507,25 +521,28 @@
 /*     */       }
 /* 174 */       if (copyFromManifest.defined())
 /* 175 */         setCopyFromManifest(true);
+/* 144 */       if (fileBucketsOption.defined()) {
+/* 145 */         setFileBuckets(fileBucketsOption.value);
+/*     */       }
+
 /*     */     }
 /*     */ 
-/*     */     public static Map<String, ManifestEntry> loadManifest(Path manifestPath, Configuration config)
+/*     */     public static Manifest loadManifest(Path manifestPath, Configuration config)
 /*     */     {
 /* 180 */       Gson gson = new Gson();
-/* 181 */       Map manifest = null;
+/* 181 */       Manifest manifest = null;
 /* 182 */       FSDataInputStream inStream = null;
 /*     */       try
 /*     */       {
-/* 185 */         manifest = new TreeMap();
 /* 186 */         FileSystem fs = FileSystem.get(manifestPath.toUri(), config);
 /* 187 */         inStream = fs.open(manifestPath);
 /* 188 */         GZIPInputStream gzipStream = new GZIPInputStream(inStream);
 /* 189 */         Scanner scanner = new Scanner(gzipStream);
-/* 190 */         manifest = new TreeMap();
+/* 190 */         manifest = new Manifest();
 /* 191 */         while (scanner.hasNextLine()) {
 /* 192 */           String line = scanner.nextLine();
 /* 193 */           ManifestEntry entry = (ManifestEntry)gson.fromJson(line, ManifestEntry.class);
-/* 194 */           manifest.put(entry.baseName, entry);
+/* 194 */           manifest.addManifest(entry);
 /*     */         }
                   scanner.close();
 /*     */       } catch (Exception e) {
@@ -644,6 +661,10 @@
 /* 309 */       return Boolean.valueOf(this.deleteOnSuccess);
 /*     */     }
 /*     */ 
+/*     */     public Integer getFileBuckets() {
+/* 285 */       return this.fileBuckets;
+/*     */     }
+/*     */ 
 /*     */     public void setDeleteOnSuccess(Boolean deleteOnSuccess) {
 /* 313 */       this.deleteOnSuccess = deleteOnSuccess.booleanValue();
 /*     */     }
@@ -662,6 +683,10 @@
 /*     */ 
 /*     */     public void setManifestPath(String manifestPath) {
 /* 329 */       this.manifestPath = manifestPath;
+/*     */     }
+/*     */ 
+/*     */     public void setFileBuckets(String fileBuckets) {
+/* 289 */       this.fileBuckets = toInteger(fileBuckets);
 /*     */     }
 /*     */ 
 /*     */     public Integer getMultipartUploadPartSize() {
@@ -684,12 +709,12 @@
 /* 349 */         this.startingIndex = Long.valueOf(0L);
 /*     */     }
 /*     */ 
-/*     */     public Map<String, ManifestEntry> getPreviousManifest()
+/*     */     public Manifest getPreviousManifest()
 /*     */     {
 /* 354 */       return this.previousManifest;
 /*     */     }
 /*     */ 
-/*     */     public void setPreviousManifest(Map<String, ManifestEntry> previousManifest) {
+/*     */     public void setPreviousManifest(Manifest previousManifest) {
 /* 358 */       this.previousManifest = previousManifest;
 /*     */     }
 /*     */ 
