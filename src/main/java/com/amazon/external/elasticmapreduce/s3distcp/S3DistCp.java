@@ -124,8 +124,8 @@
 /* 436 */           LOG.info("Skipping key '" + object.getKey() + "' because it ends with '/'");
 /*     */         }
 /*     */         else {
-/* 439 */           String s3FilePath = scheme + object.getBucketName() + "/" + object.getKey();
-/* 440 */           LOG.debug("About to add " + s3FilePath);
+/* 439 */           String s3FilePath = scheme + object.getBucketName() + "/" + Utils.escapePath(object.getKey());
+/* 440 */           LOG.warn("About to add " + s3FilePath);
 /* 441 */           fileInfoListing.add(new Path(s3FilePath), object.getSize());
 /*     */         }
 /* 443 */       if (!objects.isTruncated())

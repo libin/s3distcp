@@ -121,7 +121,7 @@
 /* 124 */         this.writer.append(new LongWritable(this.recordIndex), fileInfo);
 /*     */       }
 /* 126 */       if (this.manifestStream != null) {
-/* 127 */         ManifestEntry entry = new ManifestEntry(URLDecoder.decode(outputFilePath, "UTF-8"), URLDecoder.decode(basePath, "UTF-8"), manifestSrcDir, fileSize);
+/* 127 */         ManifestEntry entry = new ManifestEntry(Utils.escapePath(URLDecoder.decode(outputFilePath, "UTF-8")), Utils.escapePath(URLDecoder.decode(basePath, "UTF-8")), manifestSrcDir, fileSize);
 /*     */ 
 /* 129 */         String outLine = new StringBuilder().append(this.gson.toJson(entry)).append("\n").toString();
 /* 130 */         this.manifestStream.write(outLine.getBytes("utf-8"));

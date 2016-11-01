@@ -1,6 +1,9 @@
 /*    */ package com.amazon.external.elasticmapreduce.s3distcp;
 /*    */ 
-/*    */ import java.security.SecureRandom;
+/*    */ import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.security.SecureRandom;
 /*    */ import java.util.concurrent.Executors;
 /*    */ import java.util.concurrent.ThreadFactory;
 /*    */ import java.util.concurrent.ThreadPoolExecutor;
@@ -74,6 +77,46 @@
 /*    */     };
 /* 71 */     return (ThreadPoolExecutor)Executors.newFixedThreadPool(10, threadFactory);
 /*    */   }
+
+    public static String escapePath(String path) {
+        if (path == null) {
+            return null;
+        }
+        if (path.startsWith("s3://") || path.startsWith("s3n://")) {
+            return path;
+        }
+        StringBuilder result = new StringBuilder();
+        String[] components = path.split("/");
+        for (String component : components) {
+            try {
+                result.append(URLEncoder.encode(component, "UTF-8")).append("/");
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException("Strange things DID happen here - utf encoding couldn't be found!");
+            }
+        }
+        result.setLength(result.length() - 1);
+        return result.toString();
+    }
+
+    public static String unescapePath(String path) {
+        if (path == null) {
+            return null;
+        }
+        if (!path.startsWith("s3://") && !path.startsWith("s3n://")) {
+            return path;
+        }
+        StringBuilder result = new StringBuilder();
+        String[] components = path.split("/");
+        for (String component : components) {
+            try {
+                result.append(URLDecoder.decode(component, "UTF-8")).append("/");
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException("Strange things DID happen here - utf encoding couldn't be found!");
+            }
+        }
+        result.setLength(result.length() - 1);
+        return result.toString();
+    }
 /*    */ }
 
 /* Location:           /Users/libinpan/Work/s3/s3distcp.jar
