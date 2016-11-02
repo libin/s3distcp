@@ -445,7 +445,7 @@
 /* 111 */       OptionWithArg outputManifest = options.withArg("--outputManifest", "The name of the manifest file");
 /* 112 */       OptionWithArg previousManifest = options.withArg("--previousManifest", "The path to an existing manifest file");
 /* 113 */       SimpleOption copyFromManifest = options.noArg("--copyFromManifest", "Copy from a manifest instead of listing a directory");
-/* 114 */       options.parseArguments(args);
+/* 114 */       options.parseArguments(args, true);
 /* 115 */       if (helpOption.defined()) {
 /* 116 */         LOG.info(options.helpText());
 /* 117 */         this.helpDefined = true;
