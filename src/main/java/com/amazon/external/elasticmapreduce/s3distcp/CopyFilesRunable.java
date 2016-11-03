@@ -42,8 +42,8 @@ import java.net.URLDecoder;
 /*  58 */     this.fileInfos = fileInfos;
 /*  59 */     this.reducer = reducer;
 /*  60 */     this.tempPath = tempPath.toString();
-/*  61 */     this.finalPath = finalPath;
-/*  62 */     LOG.warn("Creating CopyFilesRunnable " + tempPath.toString() + ":" + finalPath.toString());
+/*  61 */     this.finalPath = new Path(Utils.escapePath(finalPath.toString()));
+/*  62 */     LOG.info("Creating CopyFilesRunnable " + tempPath.toString() + ":" + finalPath.toString());
 /*     */   }
 /*     */ 
 /*     */   private long copyStream(InputStream inputStream, OutputStream outputStream, MessageDigest md) throws IOException
@@ -85,8 +85,8 @@ import java.net.URLDecoder;
 /* 102 */         MessageDigest md = MessageDigest.getInstance("MD5");
 /* 103 */         for (FileInfo fileInfo : this.fileInfos) {
 /*     */           try {
-/* 105 */             LOG.warn("Starting download of " + fileInfo.inputFileName + " to " + curTempPath);
-/* 106 */             InputStream inputStream = this.reducer.openInputStream(new Path(fileInfo.inputFileName.toString()));
+/* 105 */             LOG.info("Starting download of " + Utils.unescapePath(fileInfo.inputFileName.toString()) + " to " + curTempPath);
+/* 106 */             InputStream inputStream = this.reducer.openInputStream(new Path(Utils.unescapePath(fileInfo.inputFileName.toString())));
 /*     */             try {
 /* 108 */               long bytesCopied = copyStream(inputStream, outputStream, md);
 /* 109 */               LOG.warn("Copied " + bytesCopied + " bytes");

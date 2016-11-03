@@ -124,8 +124,8 @@
 /* 436 */           LOG.info("Skipping key '" + object.getKey() + "' because it ends with '/'");
 /*     */         }
 /*     */         else {
-/* 439 */           String s3FilePath = scheme + object.getBucketName() + "/" + object.getKey();
-/* 440 */           LOG.debug("About to add " + s3FilePath);
+/* 439 */           String s3FilePath = scheme + object.getBucketName() + "/" + Utils.escapePath(object.getKey());
+/* 440 */           LOG.warn("About to add " + s3FilePath);
 /* 441 */           fileInfoListing.add(new Path(s3FilePath), object.getSize());
 /*     */         }
 /* 443 */       if (!objects.isTruncated())
@@ -459,7 +459,7 @@ destFs.mkdirs(destPath);
 /* 112 */       OptionWithArg previousManifest = options.withArg("--previousManifest", "The path to an existing manifest file");
 /* 113 */       SimpleOption copyFromManifest = options.noArg("--copyFromManifest", "Copy from a manifest instead of listing a directory");
 /* 103 */       OptionWithArg fileBucketsOption = options.withArg("--fileBuckets", "Number of buckets for output files (overrides '--groupBy' option)");
-/* 114 */       options.parseArguments(args);
+/* 114 */       options.parseArguments(args, true);
 /* 115 */       if (helpOption.defined()) {
 /* 116 */         LOG.info(options.helpText());
 /* 117 */         this.helpDefined = true;
