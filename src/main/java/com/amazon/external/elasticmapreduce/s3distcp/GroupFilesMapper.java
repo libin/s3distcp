@@ -42,7 +42,7 @@
 /*    */   public void map(LongWritable fileUID, FileInfo fileInfo, OutputCollector<Text, FileInfo> collector, Reporter reporter) throws IOException
 /*    */   {
 /*    */     Text key;
-String inputFileName = fileInfo.inputFileName.toString().replace("[", "%5B").replace("]", "%5D").replace(":", "%3A").replace(" ", "%20");
+String inputFileName = fileInfo.inputFileName.toString();//.replace("[", "%5B").replace("]", "%5D").replace(":", "%3A").replace(" ", "%20");
 /*    */     try
 /*    */     {				
 /* 46 */       String path = new URI(inputFileName).getPath();
