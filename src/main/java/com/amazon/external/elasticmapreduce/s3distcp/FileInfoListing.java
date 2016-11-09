@@ -160,14 +160,11 @@ suffix = suffix.substring(suffix.lastIndexOf("/"));
 /*     */   }
 /*     */ 
 /*     */   private String getOutputFilePath(Path filePath, Path srcDir) {
-/* 152 */     String suffix = getFileName(filePath);
-if (suffix.length() == 0)
-	return this.outputDir.toString();
-String outputPath = combinePathString(this.outputDir.toString(), suffix);
-/* 153 */     LOG.debug(new StringBuilder().append("outputDir: '").append(this.outputDir).append("'").toString());
-/* 154 */     LOG.debug(new StringBuilder().append("suffix: '").append(suffix).append("'").toString());
-/* 155 */     LOG.debug(new StringBuilder().append("Output path: '").append(outputPath).toString());
-/* 156 */     return outputPath;
+/* 152 */     String suffix = getBaseName(filePath, srcDir);
+/* 153 */     LOG.warn(new StringBuilder().append("outputDir: '").append(this.outputDir).append("'").toString());
+/* 154 */     LOG.warn(new StringBuilder().append("suffix: '").append(suffix).append("'").toString());
+/* 155 */     LOG.warn(new StringBuilder().append("Output path: '").append(new Path(this.outputDir, suffix).toString()).toString());
+/* 156 */     return new Path(this.outputDir, suffix).toString();
 /*     */   }
 
 private static String combinePathString(String path1, String path2) {
