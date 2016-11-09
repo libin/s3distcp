@@ -51,7 +51,7 @@
 /*     */   {
 /*  56 */     this.transferQueue.close();
 /*  57 */     synchronized (this) {
-/*  58 */       LOG.info("CopyFilesReducer uncommitted file " + this.uncommitedFiles.size());
+/*  58 */       LOG.warn("CopyFilesReducer uncommitted file " + this.uncommitedFiles.size());
 /*  59 */       for (FileInfo fileInfo : this.uncommitedFiles) {
 /*  60 */         LOG.warn("failed to upload " + fileInfo.inputFileName);
 /*  61 */         this.collector.collect(fileInfo.outputFileName, fileInfo.inputFileName);
@@ -114,15 +114,16 @@
 /*     */   }
 /*     */ 
 /*     */   private String makeFinalPath(long fileUid, String finalDir, String groupId, String groupIndex) {
-/* 124 */     String[] groupIds = groupId.split("/");
-/* 125 */     groupId = groupIds[(groupIds.length - 1)];
 /*     */ 
 /* 127 */     if (this.numberFiles) {
-/* 128 */       groupId = fileUid + groupId;
+	/* 124 */     String[] groupIds = groupId.split("/");
+	/* 125 */     groupId = fileUid + groupIds[(groupIds.length - 1)];
 /*     */     }
-/*     */ 
+/*     */ 	
 /* 131 */     if (!this.outputCodec.equalsIgnoreCase("keep"))
 /*     */     {
+				if (groupIndex != null && !groupIndex.isEmpty())
+					groupIndex = "." + groupIndex;
 /*     */       String suffix;
 /* 133 */       if (this.outputCodec.equalsIgnoreCase("gzip")) {
 /* 134 */         suffix = groupIndex + ".gz";
@@ -134,12 +135,12 @@
 /*     */         else
 /* 138 */           suffix = groupIndex + "." + this.outputCodec;
 /*     */       }
-/* 140 */       return finalDir + "/" + Utils.replaceSuffix(groupId, suffix);
+/* 140 */       return finalDir + "/" + groupId + suffix;
 /*     */     }
 /* 142 */     String suffix = Utils.getSuffix(groupId);
 /* 143 */     String name = groupId;
-/* 144 */     if (groupIndex.length() > 0) {
-/* 145 */       name = Utils.replaceSuffix(name, groupIndex);
+/* 144 */     if (!groupIndex.isEmpty()) {
+/* 145 */       name = Utils.replaceSuffix(name, "." + groupIndex);
 /* 146 */       if (suffix.length() > 0) {
 /* 147 */         name = name + "." + suffix;
 /*     */       }
@@ -150,7 +151,7 @@
 /*     */ 
 /*     */   public void reduce(Text groupKey, Iterator<FileInfo> fileInfos, OutputCollector<Text, Text> collector, Reporter reporter)
 /*     */     throws IOException
-/*     */   {
+/*     */   {	
 /* 157 */     this.collector = collector;
 /* 158 */     this.reporter = reporter;
 /* 159 */     long curSize = 0L;
@@ -173,7 +174,7 @@
 /*     */         }
 /*     */ 
 /* 178 */         finalPath = new Path(makeFinalPath(fileInfo.fileUID.get(), finalPath.toString(), groupId, groupIndex));
-/* 179 */         LOG.info("tempPath:" + tempPath + " finalPath:" + finalPath);
+/* 179 */         LOG.warn("tempPath:" + tempPath + " finalPath:" + finalPath);
 /* 180 */         executeDownloads(this, curFiles, tempPath, finalPath);
 /* 181 */         groupNum++;
 /* 182 */         curFiles = new ArrayList();
@@ -184,7 +185,7 @@
 /* 187 */       String groupId = groupKey.toString();
 /* 188 */       Path tempPath = new Path(this.tempDir + "/" + UUID.randomUUID());
 /* 189 */       Path intermediateFinal = new Path(((FileInfo)curFiles.get(0)).outputFileName.toString()).getParent();
-/* 190 */       LOG.info("tempPath:" + tempPath + " interPath:" + intermediateFinal);
+/* 190 */       LOG.warn("tempPath:" + tempPath + " interPath:" + intermediateFinal);
 /* 191 */       String groupIndex = Integer.toString(groupNum);
 /* 192 */       if (numFiles == 1) {
 /* 193 */         groupIndex = "";
@@ -198,19 +199,25 @@
 /* 201 */     synchronized (this) {
 /* 202 */       for (FileInfo fileInfo : fileInfos) {
 /* 203 */         this.uncommitedFiles.add(fileInfo);
-/* 204 */         LOG.info("Processing object: " + fileInfo.inputFileName.toString());
+/* 204 */         LOG.warn("Processing object: " + fileInfo.inputFileName.toString());
 /*     */       }
 /*     */     }
 /* 207 */     if (fileInfos.size() > 0) {
-/* 208 */       LOG.info("Processing " + fileInfos.size() + " files");
-/* 209 */       this.transferQueue.execute(new CopyFilesRunable(reducer, fileInfos, tempPath, finalPath));
+/* 208 */       LOG.warn("Processing " + fileInfos.size() + " files");
+try {
+CopyFilesRunable runnable = new CopyFilesRunable(reducer, fileInfos, tempPath, finalPath);
+/* 208 */       LOG.warn("running: " + runnable + " with transferQueue: " + transferQueue.toString());
+/* 209 */       this.transferQueue.execute(runnable);
+} catch (Throwable e) {
+	LOG.error("error", e);
+}
 /*     */     } else {
-/* 211 */       LOG.info("No files to process");
+/* 211 */       LOG.warn("No files to process");
 /*     */     }
 /*     */   }
 /*     */ 
 /*     */   public void markFileAsCommited(FileInfo fileInfo) {
-/* 216 */     LOG.info("commit " + fileInfo.inputFileName);
+/* 216 */     LOG.warn("commit " + fileInfo.inputFileName);
 /* 217 */     synchronized (this) {
 /* 218 */       this.uncommitedFiles.remove(fileInfo);
 /* 219 */       progress();

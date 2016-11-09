@@ -4,16 +4,19 @@
 /*     */ //import amazon.emr.metrics.MetricsSaver.StopWatch;
 /*     */ import com.amazonaws.services.s3.AmazonS3Client;
 /*     */ import com.amazonaws.services.s3.model.ObjectMetadata;
+
 /*     */ import java.io.File;
 /*     */ import java.io.IOException;
 /*     */ import java.io.InputStream;
 /*     */ import java.io.OutputStream;
 /*     */ import java.net.URI;
+import java.net.URLDecoder;
 /*     */ import java.nio.charset.Charset;
 /*     */ import java.security.MessageDigest;
 /*     */ import java.util.ArrayList;
 /*     */ import java.util.List;
 /*     */ import java.util.UUID;
+
 /*     */ import org.apache.commons.codec.binary.Base64;
 /*     */ import org.apache.commons.logging.Log;
 /*     */ import org.apache.commons.logging.LogFactory;
@@ -39,7 +42,7 @@
 /*  58 */     this.fileInfos = fileInfos;
 /*  59 */     this.reducer = reducer;
 /*  60 */     this.tempPath = tempPath.toString();
-/*  61 */     this.finalPath = finalPath;
+/*  61 */     this.finalPath = new Path(Utils.escapePath(finalPath.toString()));
 /*  62 */     LOG.info("Creating CopyFilesRunnable " + tempPath.toString() + ":" + finalPath.toString());
 /*     */   }
 /*     */ 
@@ -77,16 +80,16 @@
 /*     */ 
 /*  98 */       curTempPath = new Path(this.tempPath + UUID.randomUUID());
 /*     */       try {
-/* 100 */         LOG.info("Opening temp file: " + curTempPath.toString());
+/* 100 */         LOG.warn("Opening temp file: " + curTempPath.toString());
 /* 101 */         outputStream = this.reducer.openOutputStream(curTempPath);
 /* 102 */         MessageDigest md = MessageDigest.getInstance("MD5");
 /* 103 */         for (FileInfo fileInfo : this.fileInfos) {
 /*     */           try {
-/* 105 */             LOG.info("Starting download of " + fileInfo.inputFileName + " to " + curTempPath);
-/* 106 */             InputStream inputStream = this.reducer.openInputStream(new Path(fileInfo.inputFileName.toString()));
+/* 105 */             LOG.info("Starting download of " + Utils.unescapePath(fileInfo.inputFileName.toString()) + " to " + curTempPath);
+/* 106 */             InputStream inputStream = this.reducer.openInputStream(new Path(Utils.unescapePath(fileInfo.inputFileName.toString())));
 /*     */             try {
 /* 108 */               long bytesCopied = copyStream(inputStream, outputStream, md);
-/* 109 */               LOG.info("Copied " + bytesCopied + " bytes");
+/* 109 */               LOG.warn("Copied " + bytesCopied + " bytes");
 /*     */             } finally {
 /* 111 */               inputStream.close();
 /*     */             }
@@ -98,9 +101,9 @@
 /*     */             }
 /* 119 */             throw e;
 /*     */           }
-/* 121 */           finished = true;
-/* 122 */           LOG.info("Finished downloading " + fileInfo.inputFileName);
+/* 122 */           LOG.warn("Finished downloading " + fileInfo.inputFileName);
 /*     */         }
+/* 121 */           finished = true;
 /* 124 */         outputStream.close();
 /* 125 */         digest = md.digest();
 /* 126 */         return new ProcessedFile(digest, curTempPath);
@@ -168,18 +171,18 @@
 /* 190 */         FileSystem inFs = curTempPath.getFileSystem(this.reducer.getConf());
 /* 191 */         FileSystem outFs = this.finalPath.getFileSystem(this.reducer.getConf());
 /* 192 */         if (inFs.getUri().equals(outFs.getUri())) {
-/* 193 */           LOG.info("Renaming " + curTempPath.toString() + " to " + this.finalPath.toString());
+/* 193 */           LOG.warn("Renaming " + curTempPath.toString() + " to " + this.finalPath.toString());
 /* 194 */           inFs.mkdirs(this.finalPath.getParent());
 /* 195 */           inFs.rename(curTempPath, this.finalPath);
 /*     */         } else {
-/* 197 */           LOG.info("inFs.getUri()!=outFs.getUri(): " + inFs.getUri() + "!=" + outFs.getUri());
+/* 197 */           LOG.warn("inFs.getUri()!=outFs.getUri(): " + inFs.getUri() + "!=" + outFs.getUri());
 /* 198 */           copyToFinalDestination(curTempPath, this.finalPath, processedFile, inFs, outFs);
 /*     */         }
 /*     */ 
 /* 201 */         for (FileInfo fileInfo : this.fileInfos) {
 /* 202 */           this.reducer.markFileAsCommited(fileInfo);
 /* 203 */           if (this.reducer.shouldDeleteOnSuccess()) {
-/* 204 */             LOG.info("Deleting " + fileInfo.inputFileName);
+/* 204 */             LOG.warn("Deleting " + fileInfo.inputFileName);
 /* 205 */             Path inPath = new Path(fileInfo.inputFileName.toString());
 /* 206 */             FileSystem deleteFs = FileSystem.get(inPath.toUri(), this.reducer.getConf());
 /* 207 */             deleteFs.delete(inPath, false);
@@ -197,7 +200,7 @@
 /*     */ 
 /*     */   private void copyToFinalDestination(Path curTempPath, Path finalPath, ProcessedFile processedFile, FileSystem inFs, FileSystem outFs) throws Exception
 /*     */   {
-/* 222 */     LOG.info("Copying " + curTempPath.toString() + " to " + finalPath.toString());
+/* 222 */     LOG.warn("Copying " + curTempPath.toString() + " to " + finalPath.toString());
 /* 223 */     byte[] digest = processedFile.checksum;
 /* 224 */     InputStream inStream = this.reducer.openInputStream(curTempPath);
 /* 225 */     OutputStream outStream = null;

@@ -45,11 +45,13 @@
 /*     */ 
 /*     */   public void close()
 /*     */   {
+	LOG.error("closing executor");
 /* 109 */     synchronized (this) {
 /* 110 */       this.closed = true;
 /* 111 */       notifyAll();
 /*     */     }
 /*     */ 
+LOG.error("waiting for threads");
 /* 114 */     for (int i = 0; i < this.workers.length; i++)
 /*     */       try {
 /* 116 */         this.workers[i].join();
@@ -57,6 +59,7 @@
 /*     */       catch (InterruptedException e) {
 /* 119 */         LOG.error("Interrupted while waiting for workers", e);
 /*     */       }
+LOG.error("joined all threads");
 /*     */   }
 /*     */ 
 /*     */   public synchronized boolean closed()
@@ -66,6 +69,7 @@
 /*     */ 
 /*     */   public synchronized void execute(Runnable command)
 /*     */   {
+	LOG.error("trying to execute: " + command.toString());
 /*     */     try
 /*     */     {
 /* 132 */       while (isFull())
@@ -77,6 +81,7 @@
 /* 138 */     this.queue[this.head] = command;
 /* 139 */     this.head = ((this.head + 1) % this.queue.length);
 /* 140 */     notifyAll();
+LOG.error("notified all about: " + command.toString());
 /*     */   }
 /*     */ 
 /*     */   synchronized boolean isEmpty() {
