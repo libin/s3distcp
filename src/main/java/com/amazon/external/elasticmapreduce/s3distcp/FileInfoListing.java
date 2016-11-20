@@ -161,6 +161,8 @@ suffix = suffix.substring(suffix.lastIndexOf("/"));
 /*     */ 
 /*     */   private String getOutputFilePath(Path filePath, Path srcDir) {
 /* 152 */     String suffix = getBaseName(filePath, srcDir);
+if (suffix.isEmpty())
+	suffix = getFileName(filePath);
 /* 153 */     LOG.warn(new StringBuilder().append("outputDir: '").append(this.outputDir).append("'").toString());
 /* 154 */     LOG.warn(new StringBuilder().append("suffix: '").append(suffix).append("'").toString());
 /* 155 */     LOG.warn(new StringBuilder().append("Output path: '").append(new Path(this.outputDir, suffix).toString()).toString());
