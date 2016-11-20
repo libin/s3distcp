@@ -1,12 +1,13 @@
 /*    */ package com.amazon.external.elasticmapreduce.s3distcp;
 /*    */ 
 /*    */ import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.security.SecureRandom;
+import java.util.Map;
 /*    */ import java.util.concurrent.Executors;
 /*    */ import java.util.concurrent.ThreadFactory;
 /*    */ import java.util.concurrent.ThreadPoolExecutor;
+
+import com.google.common.collect.ImmutableMap;
 /*    */ 
 /*    */ public class Utils
 /*    */ {
@@ -88,14 +89,31 @@ import java.security.SecureRandom;
         StringBuilder result = new StringBuilder();
         String[] components = path.split("/");
         for (String component : components) {
-            try {
-                result.append(URLEncoder.encode(component, "UTF-8")).append("/");
-            } catch (UnsupportedEncodingException e) {
-                throw new RuntimeException("Strange things DID happen here - utf encoding couldn't be found!");
-            }
+        	result.append(customUrlEncode(component)).append("/");
         }
         result.setLength(result.length() - 1);
         return result.toString();
+    }
+    
+    static final Map<String, String> CHAR_MAPPINGS = ImmutableMap.of(
+    	    " ", "%20",
+    	    "[", "%5B",
+    	    "]", "%5D",
+    	    ":", "%3A"
+    	);
+    
+    private static String customUrlEncode(String part) {
+    	for (Map.Entry<String, String> e : CHAR_MAPPINGS.entrySet()){
+    		part = part.replace(e.getKey(), e.getValue());    		
+    	}
+    	return part;
+    }
+    
+    private static String customUrlDecode(String part) {
+    	for (Map.Entry<String, String> e : CHAR_MAPPINGS.entrySet()){
+    		part = part.replace(e.getValue(), e.getKey());    		
+    	}
+    	return part;
     }
 
     public static String unescapePath(String path) {
@@ -108,11 +126,7 @@ import java.security.SecureRandom;
         StringBuilder result = new StringBuilder();
         String[] components = path.split("/");
         for (String component : components) {
-            try {
-                result.append(URLDecoder.decode(component, "UTF-8")).append("/");
-            } catch (UnsupportedEncodingException e) {
-                throw new RuntimeException("Strange things DID happen here - utf encoding couldn't be found!");
-            }
+            result.append(customUrlDecode(component)).append("/");
         }
         result.setLength(result.length() - 1);
         return result.toString();
