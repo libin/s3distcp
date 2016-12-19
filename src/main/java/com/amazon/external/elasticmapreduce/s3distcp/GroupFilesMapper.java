@@ -47,13 +47,14 @@ String inputFileName = fileInfo.inputFileName.toString();//.replace("[", "%5B").
 /*    */     {				
 /* 46 */       String path = new URI(inputFileName).getPath();
 
-				System.out.println("filename = " + inputFileName);
-				System.out.println("path = " + path);
-
+if (log.isDebugEnabled()) {
+				log.debug("filename = " + inputFileName);
+				log.debug("path = " + path);
+}
 /* 47 */       if (path.startsWith(this.destDir)) {
 /* 48 */         path = path.substring(this.destDir.length());
 /*    */       }			   
-				System.out.println("path after = " + path);
+				log.debug("path after = " + path);
 /* 50 */       key = new Text(path);
 /*    */     } catch (URISyntaxException e) {
 /* 52 */       throw new RuntimeException(new StringBuilder().append("Bad URI: ").append(inputFileName).toString(), e);

@@ -107,6 +107,7 @@
 /*     */ 
 /*     */       try
 /*     */       {
+	LOG.info("getting file list from S3");
 /* 422 */         objects = s3Client.listObjects(listObjectRequest);
 /* 423 */         retryCount = 0;
 /*     */       } catch (AmazonClientException e) {
@@ -118,16 +119,18 @@
 /* 430 */         LOG.warn("Error listing objects: " + e.getMessage(), e);
                   continue;
 /* 431 */       }
+LOG.info("adding " + objects.getObjectSummaries().size() +" files from list from S3");
 /*     */ 
 /* 434 */       for (S3ObjectSummary object : objects.getObjectSummaries())
 /* 435 */         if (object.getKey().endsWith("/")) {
-/* 436 */           LOG.info("Skipping key '" + object.getKey() + "' because it ends with '/'");
+/* 436 */           LOG.debug("Skipping key '" + object.getKey() + "' because it ends with '/'");
 /*     */         }
 /*     */         else {
 /* 439 */           String s3FilePath = scheme + object.getBucketName() + "/" + Utils.escapePath(object.getKey());
 /* 440 */           LOG.debug("About to add " + s3FilePath);
 /* 441 */           fileInfoListing.add(new Path(s3FilePath), object.getSize());
 /*     */         }
+LOG.info("added " + objects.getObjectSummaries().size() +" files from list from S3");
 /* 443 */       if (!objects.isTruncated())
 /* 444 */         finished = true;
 /*     */     }

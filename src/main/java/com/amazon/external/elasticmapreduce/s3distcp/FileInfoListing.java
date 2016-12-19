@@ -112,15 +112,16 @@
 /*     */     try {
 /* 115 */       FileInfo fileInfo = new FileInfo(Long.valueOf(this.recordIndex), filePathString, outputFilePath, fileSize);
 /*     */ 
+if (LOG.isDebugEnabled())
 /* 117 */       LOG.debug(new StringBuilder().append("Adding ").append(fileInfo).toString());
 /* 118 */       if ((this.previousManifest != null) && (this.previousManifest.getManifest(filePath.toString(), basePath, getFileName(filePath), fileSize) != null))
 /*     */       {
-	LOG.info("Found file in previous manifest: " + filePath.toString());
+	LOG.debug("Found file in previous manifest: " + filePath.toString());
 			ManifestEntry entry = this.previousManifest.getManifest(filePath.toString(), basePath, getFileName(filePath), fileSize);
 /* 121 */         outputFilePath = entry.path;
 /* 122 */         manifestSrcDir = entry.srcDir;
 /*     */       } else {
-	LOG.info("file added to filelist: " + filePath.toString());
+	LOG.debug("file added to filelist: " + filePath.toString());
 /* 124 */         this.writer.append(new LongWritable(this.recordIndex), fileInfo);
 /*     */       }
 /* 126 */       if (this.manifestStream != null) {
@@ -163,9 +164,9 @@ suffix = suffix.substring(suffix.lastIndexOf("/"));
 /* 152 */     String suffix = getBaseName(filePath, srcDir);
 if (suffix.isEmpty())
 	suffix = getFileName(filePath);
-/* 153 */     LOG.warn(new StringBuilder().append("outputDir: '").append(this.outputDir).append("'").toString());
-/* 154 */     LOG.warn(new StringBuilder().append("suffix: '").append(suffix).append("'").toString());
-/* 155 */     LOG.warn(new StringBuilder().append("Output path: '").append(new Path(this.outputDir, suffix).toString()).toString());
+/* 153 */     LOG.debug(new StringBuilder().append("outputDir: '").append(this.outputDir).append("'").toString());
+/* 154 */     LOG.debug(new StringBuilder().append("suffix: '").append(suffix).append("'").toString());
+/* 155 */     LOG.debug(new StringBuilder().append("Output path: '").append(new Path(this.outputDir, suffix).toString()).toString());
 /* 156 */     return new Path(this.outputDir, suffix).toString();
 /*     */   }
 
