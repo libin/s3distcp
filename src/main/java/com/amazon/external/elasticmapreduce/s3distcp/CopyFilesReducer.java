@@ -19,6 +19,7 @@
 /*     */ import org.apache.hadoop.fs.Path;
 /*     */ import org.apache.hadoop.io.LongWritable;
 /*     */ import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.compress.BZip2Codec;
 /*     */ import org.apache.hadoop.io.compress.SnappyCodec;
 /*     */ import org.apache.hadoop.mapred.JobConf;
 /*     */ import org.apache.hadoop.mapred.OutputCollector;
@@ -232,6 +233,8 @@ CopyFilesRunable runnable = new CopyFilesRunable(reducer, fileInfos, tempPath, f
 /* 228 */       String suffix = Utils.getSuffix(inputFilePath.getName());
 /* 229 */       if (suffix.equalsIgnoreCase("gz"))
 /* 230 */         return new GZIPInputStream(inputStream);
+/* 229 */       if (suffix.equalsIgnoreCase("bz2"))	
+/* 230 */         return new BZip2Codec().createInputStream(inputStream);
 /* 231 */       if (suffix.equalsIgnoreCase("snappy")) {
 /* 232 */         SnappyCodec codec = new SnappyCodec();
 /* 233 */         codec.setConf(getConf());

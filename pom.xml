@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.amazon</groupId>
 	<artifactId>s3distcp</artifactId>
-	<version>0.15-TRUNK-SNAPSHOT</version>
+	<version>0.16-TRUNK-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>s3distcp</name>
 	<description>A fast copy utility to/from S3 and HDFS</description>
