@@ -15,6 +15,7 @@
 /*     */ import java.util.zip.GZIPOutputStream;
 /*     */ import org.apache.commons.logging.Log;
 /*     */ import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configurable;
 /*     */ import org.apache.hadoop.fs.FileSystem;
 /*     */ import org.apache.hadoop.fs.Path;
 /*     */ import org.apache.hadoop.io.LongWritable;
@@ -233,8 +234,12 @@ CopyFilesRunable runnable = new CopyFilesRunable(reducer, fileInfos, tempPath, f
 /* 228 */       String suffix = Utils.getSuffix(inputFilePath.getName());
 /* 229 */       if (suffix.equalsIgnoreCase("gz"))
 /* 230 */         return new GZIPInputStream(inputStream);
-/* 229 */       if (suffix.equalsIgnoreCase("bz2"))	
-/* 230 */         return new BZip2Codec().createInputStream(inputStream);
+/* 229 */       if (suffix.equalsIgnoreCase("bz2"))	 {
+					BZip2Codec codec = new BZip2Codec();
+					if (codec instanceof Configurable)
+						((Configurable)codec).setConf(getConf());
+/* 230 */         	return codec.createInputStream(inputStream);
+				}
 /* 231 */       if (suffix.equalsIgnoreCase("snappy")) {
 /* 232 */         SnappyCodec codec = new SnappyCodec();
 /* 233 */         codec.setConf(getConf());
