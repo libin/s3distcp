@@ -21,10 +21,12 @@
 /*    */   protected JobConf conf;
 /* 23 */   protected Pattern pattern = null;
 /*    */   private String destDir;
+		   private Integer fileBuckets; 
 /*    */ 
 /*    */   public void configure(JobConf conf)
 /*    */   {
 /* 28 */     this.conf = conf;
+/*  98 */    this.fileBuckets = conf.getInt("s3DistCp.copyfiles.mapper.fileBuckets", -1);
 /* 29 */     String patternString = conf.get("s3DistCp.listfiles.gropubypattern");
 /* 30 */     if (patternString != null) {
 /* 31 */       this.pattern = Pattern.compile(patternString);
@@ -40,18 +42,36 @@
 /*    */   public void map(LongWritable fileUID, FileInfo fileInfo, OutputCollector<Text, FileInfo> collector, Reporter reporter) throws IOException
 /*    */   {
 /*    */     Text key;
+String inputFileName = fileInfo.inputFileName.toString();//.replace("[", "%5B").replace("]", "%5D").replace(":", "%3A").replace(" ", "%20");
 /*    */     try
-/*    */     {
-/* 46 */       String path = new URI(fileInfo.inputFileName.toString()).getPath();
+/*    */     {				
+/* 46 */       String path = new URI(inputFileName).getPath();
+
+if (log.isDebugEnabled()) {
+				log.debug("filename = " + inputFileName);
+				log.debug("path = " + path);
+}
 /* 47 */       if (path.startsWith(this.destDir)) {
 /* 48 */         path = path.substring(this.destDir.length());
-/*    */       }
+/*    */       }			   
+				log.debug("path after = " + path);
 /* 50 */       key = new Text(path);
 /*    */     } catch (URISyntaxException e) {
-/* 52 */       throw new RuntimeException(new StringBuilder().append("Bad URI: ").append(fileInfo.inputFileName.toString()).toString(), e);
+/* 52 */       throw new RuntimeException(new StringBuilder().append("Bad URI: ").append(inputFileName).toString(), e);
 /*    */     }
 /*    */ 
-/* 55 */     if (this.pattern != null) {
+			 if (this.fileBuckets > 0) {
+	/*    */     try
+	/*    */     {
+	/* 46 */       String path = new URI(inputFileName).getPath();
+	/* 47 */       if (path.startsWith(this.destDir)) {
+	/* 48 */         path = path.substring(this.destDir.length());
+	/*    */       }			   
+	/* 50 */       key = new Text("" + ("" + (path.hashCode() % this.fileBuckets)).hashCode());
+	/*    */     } catch (URISyntaxException e) {
+	/* 52 */       throw new RuntimeException(new StringBuilder().append("Bad URI: ").append(inputFileName).toString(), e);
+	/*    */     }
+			 } else if (this.pattern != null) {
 /* 56 */       Matcher matcher = this.pattern.matcher(fileInfo.inputFileName.toString());
 /* 57 */       if (matcher.matches()) {
 /* 58 */         int numGroups = matcher.groupCount();
@@ -65,7 +85,14 @@
 /* 66 */     log.debug(new StringBuilder().append("Adding ").append(key.toString()).append(": ").append(fileInfo.inputFileName.toString()).toString());
 /* 67 */     collector.collect(key, fileInfo);
 /*    */   }
+
+	public static void main(String[] args) throws URISyntaxException {
+		//s3n://data-lake-production-ca/earnings_inputs/-12861
+		String path = new URI("s3n://XPlenty/test-colon/airasia_failied_luigi_job_3168441.txt").getPath();
+		System.out.println(path);
+	}
 /*    */ }
+
 
 /* Location:           /Users/libinpan/Work/s3/s3distcp.jar
  * Qualified Name:     com.amazon.external.elasticmapreduce.s3distcp.GroupFilesMapper

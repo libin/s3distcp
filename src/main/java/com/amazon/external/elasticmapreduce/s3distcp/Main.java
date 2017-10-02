@@ -1,6 +1,8 @@
 /*    */ package com.amazon.external.elasticmapreduce.s3distcp;
 /*    */ 
-/*    */ import org.apache.commons.logging.Log;
+/*    */ import java.util.Arrays;
+
+import org.apache.commons.logging.Log;
 /*    */ import org.apache.commons.logging.LogFactory;
 /*    */ import org.apache.hadoop.util.ToolRunner;
 /*    */ 
@@ -9,7 +11,7 @@
 /*  8 */   private static final Log log = LogFactory.getLog(S3DistCp.class);
 /*    */ 
 /*    */   public static void main(String[] args) throws Exception {
-/* 11 */     log.info("Running with args: " + args);
+/* 11 */     log.info("Running with args: " + Arrays.toString(args));
 /*    */ 
 /* 13 */     System.exit(ToolRunner.run(new S3DistCp(), args));
 /*    */   }

@@ -36,10 +36,10 @@
 /*     */   private Pattern srcPattern;
 /*     */   private Pattern groupBy;
 /*     */   private OutputStream manifestStream;
-/*     */   private Map<String, ManifestEntry> previousManifest;
+/*     */   private Manifest previousManifest;
 /*  42 */   private final Gson gson = new Gson();
 /*     */ 
-/*     */   public FileInfoListing(Configuration conf, Path srcDir, Path tmpDir, Path outputDir, long startingIndex, File manifestFile, Map<String, ManifestEntry> previousManifest)
+/*     */   public FileInfoListing(Configuration conf, Path srcDir, Path tmpDir, Path outputDir, long startingIndex, File manifestFile, Manifest previousManifest)
 /*     */     throws IOException
 /*     */   {
 /*  47 */     this.conf = conf;
@@ -112,16 +112,20 @@
 /*     */     try {
 /* 115 */       FileInfo fileInfo = new FileInfo(Long.valueOf(this.recordIndex), filePathString, outputFilePath, fileSize);
 /*     */ 
+if (LOG.isDebugEnabled())
 /* 117 */       LOG.debug(new StringBuilder().append("Adding ").append(fileInfo).toString());
-/* 118 */       if ((this.previousManifest != null) && (this.previousManifest.containsKey(basePath)) && (((ManifestEntry)this.previousManifest.get(basePath)).size == fileSize))
+/* 118 */       if ((this.previousManifest != null) && (this.previousManifest.getManifest(filePath.toString(), basePath, getFileName(filePath), fileSize) != null))
 /*     */       {
-/* 121 */         outputFilePath = ((ManifestEntry)this.previousManifest.get(basePath)).path;
-/* 122 */         manifestSrcDir = ((ManifestEntry)this.previousManifest.get(basePath)).srcDir;
+	LOG.debug("Found file in previous manifest: " + filePath.toString());
+			ManifestEntry entry = this.previousManifest.getManifest(filePath.toString(), basePath, getFileName(filePath), fileSize);
+/* 121 */         outputFilePath = entry.path;
+/* 122 */         manifestSrcDir = entry.srcDir;
 /*     */       } else {
+	LOG.debug("file added to filelist: " + filePath.toString());
 /* 124 */         this.writer.append(new LongWritable(this.recordIndex), fileInfo);
 /*     */       }
 /* 126 */       if (this.manifestStream != null) {
-/* 127 */         ManifestEntry entry = new ManifestEntry(URLDecoder.decode(outputFilePath, "UTF-8"), URLDecoder.decode(basePath, "UTF-8"), manifestSrcDir, fileSize);
+/* 127 */         ManifestEntry entry = new ManifestEntry(Utils.escapePath(URLDecoder.decode(outputFilePath, "UTF-8")), Utils.escapePath(URLDecoder.decode(basePath, "UTF-8")), manifestSrcDir, filePath.toString(), fileSize);
 /*     */ 
 /* 129 */         String outLine = new StringBuilder().append(this.gson.toJson(entry)).append("\n").toString();
 /* 130 */         this.manifestStream.write(outLine.getBytes("utf-8"));
@@ -145,13 +149,34 @@
 /* 148 */     return suffix;
 /*     */   }
 /*     */ 
+/*     */   private String getFileName(Path filePath)
+/*     */   {
+/* 139 */     String filePathString = filePath.toString();
+/* 140 */     String suffix = filePathString;
+suffix = suffix.substring(suffix.lastIndexOf("/"));
+/* 144 */       if (suffix.startsWith("/")) {
+/* 145 */         suffix = suffix.substring(1);
+/*     */       }
+/* 148 */     return suffix;
+/*     */   }
+/*     */ 
 /*     */   private String getOutputFilePath(Path filePath, Path srcDir) {
 /* 152 */     String suffix = getBaseName(filePath, srcDir);
+if (suffix.isEmpty())
+	suffix = getFileName(filePath);
 /* 153 */     LOG.debug(new StringBuilder().append("outputDir: '").append(this.outputDir).append("'").toString());
 /* 154 */     LOG.debug(new StringBuilder().append("suffix: '").append(suffix).append("'").toString());
 /* 155 */     LOG.debug(new StringBuilder().append("Output path: '").append(new Path(this.outputDir, suffix).toString()).toString());
 /* 156 */     return new Path(this.outputDir, suffix).toString();
 /*     */   }
+
+private static String combinePathString(String path1, String path2) {
+	if (path1.endsWith(File.pathSeparator))
+		path1.substring(0, path1.length()-1);
+	if (path2.startsWith(File.pathSeparator))
+		path2.substring(1, path2.length());
+	return path1 + File.pathSeparator + path2;
+}
 /*     */ 
 /*     */   public void close() {
 /*     */     try {
