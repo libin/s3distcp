@@ -151,8 +151,8 @@
 /* 465 */       endpoint = "s3-us-gov-west-1.amazonaws.com";
 /*     */     }
 /* 467 */     if (endpoint != null) {
-/* 468 */       LOG.info("AmazonS3Client setEndpoint s3-us-gov-west-1.amazonaws.com");
-/* 469 */       s3Client.setEndpoint("s3-us-gov-west-1.amazonaws.com");
+/* 468 */       LOG.info("AmazonS3Client setEndpoint "+endpoint); 
+/* 469 */       s3Client.setEndpoint(endpoint); 
 /*     */     }
 /* 471 */     return s3Client;
 /*     */   }
@@ -285,6 +285,12 @@
 /* 610 */         System.err.println("Invalid group by pattern");
 /* 611 */         System.exit(1);
 /*     */       }
+                boolean groupWithNewLine = options.getGroupWithNewLine();
+                if (groupWithNewLine) {
+                  job.set("s3DistCp.listfiles.gropubypattern.withnewline", "true");
+                } else {
+                  job.set("s3DistCp.listfiles.gropubypattern.withnewline", "false");
+                }
 /*     */     }
 /*     */ 
 /* 615 */     if (options.getFilePerMapper() != null) {
@@ -409,6 +415,7 @@
 /*     */     String srcPattern;
 /*     */     Long filePerMapper;
 /*     */     String groupByPattern;
+/*     */     boolean groupWithNewLine = false;
 /*     */     Integer targetSize;
 /*  79 */     String outputCodec = "keep";
 /*     */     String s3Endpoint;
@@ -434,6 +441,7 @@
 /* 100 */       OptionWithArg srcPatternOption = options.withArg("--srcPattern", "Include only source files matching this pattern");
 /* 101 */       OptionWithArg filePerMapperOption = options.withArg("--filesPerMapper", "Place up to this number of files in each map task");
 /* 102 */       OptionWithArg groupByPatternOption = options.withArg("--groupBy", "Pattern to group input files by");
+                OptionWithArg groupWithNewLineOption = options.withArg("--groupWithNewLine", "Grouping with new line option");
 /* 103 */       OptionWithArg targetSizeOption = options.withArg("--targetSize", "Target size for output files");
 /* 104 */       OptionWithArg outputCodecOption = options.withArg("--outputCodec", "Compression codec for output files");
 /* 105 */       OptionWithArg s3EndpointOption = options.withArg("--s3Endpoint", "S3 endpoint to use for uploading files");
@@ -475,6 +483,10 @@
 /* 141 */       if (groupByPatternOption.defined()) {
 /* 142 */         setGroupByPattern(groupByPatternOption.value);
 /*     */       }
+                if (groupWithNewLineOption.defined()) {
+                  setGroupWithNewLine(Boolean.valueOf(groupWithNewLineOption.value));
+                }
+
 /* 144 */       if (targetSizeOption.defined()) {
 /* 145 */         setTargetSize(targetSizeOption.value);
 /*     */       }
@@ -615,6 +627,12 @@
 /*     */     public void setGroupByPattern(String groupByPattern) {
 /* 281 */       this.groupByPattern = groupByPattern;
 /*     */     }
+              public boolean getGroupWithNewLine() {
+                return this.groupWithNewLine;
+              }
+              public void setGroupWithNewLine(boolean a) {
+                this.groupWithNewLine = a;
+              }
 /*     */ 
 /*     */     public Integer getTargetSize() {
 /* 285 */       return this.targetSize;

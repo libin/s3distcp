@@ -137,15 +137,19 @@
 /* 140 */       return finalDir + "/" + Utils.replaceSuffix(groupId, suffix);
 /*     */     }
 /* 142 */     String suffix = Utils.getSuffix(groupId);
-/* 143 */     String name = groupId;
-/* 144 */     if (groupIndex.length() > 0) {
-/* 145 */       name = Utils.replaceSuffix(name, groupIndex);
-/* 146 */       if (suffix.length() > 0) {
-/* 147 */         name = name + "." + suffix;
-/*     */       }
-/*     */     }
-/*     */ 
-/* 151 */     return finalDir + "/" + name;
+              if (this.outputCodec.equalsIgnoreCase("gzip") || this.outputCodec.equalsIgnoreCase("gz")) {
+                suffix = suffix + ".gz";
+              }
+              String name;
+              int i = finalDir.lastIndexOf("/");
+              int i2 = i >=0 ? i : 0;
+              String finalDir2 = finalDir.substring(0, i2);
+              if (suffix.length() > 0) {
+                name = "monthlydata." + suffix;
+              } else {
+                name = "monthlydata";
+              }
+/* 151 */     return finalDir2 + "/" + name;
 /*     */   }
 /*     */ 
 /*     */   public void reduce(Text groupKey, Iterator<FileInfo> fileInfos, OutputCollector<Text, Text> collector, Reporter reporter)

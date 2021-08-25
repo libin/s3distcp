@@ -56,6 +56,11 @@
 /*  75 */         this.reducer.progress();
 /*  76 */         bytesCopied += len;
 /*     */       }
+								byte[] newLine = "\n".getBytes();
+								md.update(newLine);
+								outputStream.write(newLine);
+								this.reducer.progress();
+								bytesCopied += newLine.length;
 /*  78 */       //MetricsSaver.addValue("S3DistCpCopyStreamDelay", stopWatch.elapsedTime());
 /*  79 */       //MetricsSaver.addValue("S3DistCpCopyStreamBytes", bytesCopied);
 /*     */     } catch (Exception e) {
