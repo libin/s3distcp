@@ -1,9 +1,17 @@
 package com.amazon.external.elasticmapreduce.s3distcp;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.security.SecureRandom;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
+
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpConnectionManager;
+import org.apache.commons.httpclient.SimpleHttpConnectionManager;
+import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 
 public class Utils {
   public static String randomString(long value) {
@@ -65,6 +73,47 @@ public class Utils {
 	  }
 	};
 	return (ThreadPoolExecutor) Executors.newFixedThreadPool(10, threadFactory);
+  }
+  
+  private static String getHostName() {
+	try {
+	  InetAddress addr = InetAddress.getLocalHost();
+	  return addr.getHostName();
+	} catch (UnknownHostException ex) {
+	}
+	return "unknown";
+  }
+  
+  public static boolean isGovCloud(String ec2MetaDataAz) {
+	if (ec2MetaDataAz != null) {
+	  return ec2MetaDataAz.startsWith("us-gov-west-1");
+	}
+
+	String hostname = getHostName();
+	int timeout = hostname.startsWith("ip-") ? 30000 : 5000;
+	GetMethod getMethod = new GetMethod("http://169.254.169.254/latest/meta-data/placement/availability-zone");
+	try {
+	  HttpConnectionManager manager = new SimpleHttpConnectionManager();
+	  HttpConnectionManagerParams params = manager.getParams();
+
+	  params.setConnectionTimeout(timeout);
+
+	  params.setSoTimeout(timeout);
+	  HttpClient httpClient = new HttpClient(manager);
+	  int status = httpClient.executeMethod(getMethod);
+	  if ((status < 200) || (status > 299)) {
+		
+	  } else {
+		ec2MetaDataAz = getMethod.getResponseBodyAsString().trim();
+		
+		return ec2MetaDataAz.startsWith("us-gov-west-1");
+	  }
+	} catch (Exception e) {
+	  
+	} finally {
+	  getMethod.releaseConnection();
+	}
+	return false;
   }
 }
 

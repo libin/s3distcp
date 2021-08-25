@@ -9,13 +9,13 @@ abstract class WritableStruct implements Writable {
   public abstract Writable[] getFields();
 
   public void readFields(DataInput input) throws IOException {
-	for (Writable field : getFields())
-	  field.readFields(input);
+    for (Writable field : getFields())
+      field.readFields(input);
   }
 
   public void write(DataOutput output) throws IOException {
-	for (Writable field : getFields())
-	  field.write(output);
+    for (Writable field : getFields())
+      field.write(output);
   }
 }
 

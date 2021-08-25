@@ -20,31 +20,31 @@ public class CreateFileMapper implements Mapper<LongWritable, CreateFileInfo, Lo
   }
 
   public void configure(JobConf conf) {
-	this.conf = conf;
+    this.conf = conf;
   }
 
   public void map(LongWritable key, CreateFileInfo value, OutputCollector<LongWritable, CreateFileInfo> output,
-	  Reporter reporter) throws IOException {
-	try {
-	  FileSystem fs = FileSystem.get(new URI(value.fileName.toString()), this.conf);
-	  FSDataOutputStream outputFile = fs.create(new Path(value.fileName.toString()));
-	  long bytesLeftToWrite = value.fileSize.get();
-	  byte[] buffer = new byte[12582912];
-	  for (int i = 0; (i < buffer.length) && (i < bytesLeftToWrite); i++) {
-		buffer[i] = ((byte) (i % 127));
-	  }
-	  while (bytesLeftToWrite > buffer.length) {
-		outputFile.write(buffer);
-		bytesLeftToWrite -= buffer.length;
-		reporter.progress();
-	  }
-	  if (bytesLeftToWrite > 0L) {
-		outputFile.write(buffer, 0, (int) bytesLeftToWrite);
-		bytesLeftToWrite = 0L;
-	  }
-	} catch (URISyntaxException e) {
-	  throw new RuntimeException(e);
-	}
+      Reporter reporter) throws IOException {
+    try {
+      FileSystem fs = FileSystem.get(new URI(value.fileName.toString()), this.conf);
+      FSDataOutputStream outputFile = fs.create(new Path(value.fileName.toString()));
+      long bytesLeftToWrite = value.fileSize.get();
+      byte[] buffer = new byte[12582912];
+      for (int i = 0; (i < buffer.length) && (i < bytesLeftToWrite); i++) {
+        buffer[i] = ((byte) (i % 127));
+      }
+      while (bytesLeftToWrite > buffer.length) {
+        outputFile.write(buffer);
+        bytesLeftToWrite -= buffer.length;
+        reporter.progress();
+      }
+      if (bytesLeftToWrite > 0L) {
+        outputFile.write(buffer, 0, (int) bytesLeftToWrite);
+        bytesLeftToWrite = 0L;
+      }
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
   }
 }
 

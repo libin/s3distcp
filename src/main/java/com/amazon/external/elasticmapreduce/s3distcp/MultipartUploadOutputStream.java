@@ -55,176 +55,176 @@ public class MultipartUploadOutputStream extends OutputStream implements Abortab
   DigestOutputStream currentOutput;
 
   public MultipartUploadOutputStream(AmazonS3 s3, ThreadPoolExecutor threadPool, Progressable progressable,
-	  String bucketName, String key, ObjectMetadata metadata, long partSize, File[] tempDirs) {
-	RetryPolicy basePolicy = RetryPolicies.retryUpToMaximumCountWithFixedSleep(4, 10L, TimeUnit.SECONDS);
-	Map exceptionToPolicyMap = new HashMap();
+      String bucketName, String key, ObjectMetadata metadata, long partSize, File[] tempDirs) {
+    RetryPolicy basePolicy = RetryPolicies.retryUpToMaximumCountWithFixedSleep(4, 10L, TimeUnit.SECONDS);
+    Map exceptionToPolicyMap = new HashMap();
 
-	exceptionToPolicyMap.put(Exception.class, basePolicy);
+    exceptionToPolicyMap.put(Exception.class, basePolicy);
 
-	RetryPolicy methodPolicy = RetryPolicies.retryByException(RetryPolicies.TRY_ONCE_THEN_FAIL, exceptionToPolicyMap);
+    RetryPolicy methodPolicy = RetryPolicies.retryByException(RetryPolicies.TRY_ONCE_THEN_FAIL, exceptionToPolicyMap);
 
-	Map methodNameToPolicyMap = new HashMap();
+    Map methodNameToPolicyMap = new HashMap();
 
-	methodNameToPolicyMap.put("completeMultipartUpload", methodPolicy);
+    methodNameToPolicyMap.put("completeMultipartUpload", methodPolicy);
 
-	this.s3 = ((AmazonS3) RetryProxy.create(AmazonS3.class, s3, methodNameToPolicyMap));
-	InitiateMultipartUploadResult result = this.s3
-		.initiateMultipartUpload(new InitiateMultipartUploadRequest(bucketName, key).withObjectMetadata(metadata));
+    this.s3 = ((AmazonS3) RetryProxy.create(AmazonS3.class, s3, methodNameToPolicyMap));
+    InitiateMultipartUploadResult result = this.s3
+        .initiateMultipartUpload(new InitiateMultipartUploadRequest(bucketName, key).withObjectMetadata(metadata));
 
-	this.threadPool = threadPool;
-	this.progressable = progressable;
-	this.futures = new ArrayList();
+    this.threadPool = threadPool;
+    this.progressable = progressable;
+    this.futures = new ArrayList();
 
-	this.tempDirs = tempDirs;
-	this.bucketName = bucketName;
-	this.key = key;
-	this.uploadId = result.getUploadId();
-	this.partSize = partSize;
+    this.tempDirs = tempDirs;
+    this.bucketName = bucketName;
+    this.key = key;
+    this.uploadId = result.getUploadId();
+    this.partSize = partSize;
 
-	setTempFileAndOutput();
+    setTempFileAndOutput();
   }
 
   public void write(byte[] b) throws IOException {
-	write(b, 0, b.length);
+    write(b, 0, b.length);
   }
 
   public void write(byte[] b, int off, int len) throws IOException {
-	long capacityLeft = capacityLeft();
-	int offset = off;
-	int length = len;
-	while (capacityLeft < length) {
-	  int capacityLeftInt = (int) capacityLeft;
-	  this.currentOutput.write(b, offset, capacityLeftInt);
-	  kickOffUpload();
-	  offset += capacityLeftInt;
-	  length -= capacityLeftInt;
-	  capacityLeft = capacityLeft();
-	}
-	this.currentOutput.write(b, offset, length);
-	this.currentPartSize += length;
+    long capacityLeft = capacityLeft();
+    int offset = off;
+    int length = len;
+    while (capacityLeft < length) {
+      int capacityLeftInt = (int) capacityLeft;
+      this.currentOutput.write(b, offset, capacityLeftInt);
+      kickOffUpload();
+      offset += capacityLeftInt;
+      length -= capacityLeftInt;
+      capacityLeft = capacityLeft();
+    }
+    this.currentOutput.write(b, offset, length);
+    this.currentPartSize += length;
   }
 
   public void write(int b) throws IOException {
-	if (capacityLeft() < 1L) {
-	  kickOffUpload();
-	}
-	this.currentOutput.write(b);
-	this.currentPartSize += 1L;
+    if (capacityLeft() < 1L) {
+      kickOffUpload();
+    }
+    this.currentOutput.write(b);
+    this.currentPartSize += 1L;
   }
 
   public void flush() {
   }
 
   public void close() {
-	try {
-	  kickOffUpload();
+    try {
+      kickOffUpload();
 
-	  boolean anyNotDone = false;
-	  while (!anyNotDone) {
-		anyNotDone = true;
-		for (Future future : this.futures) {
-		  anyNotDone &= future.isDone();
-		}
-		if (this.progressable != null) {
-		  this.progressable.progress();
-		}
-		Thread.sleep(1000L);
-	  }
+      boolean anyNotDone = false;
+      while (!anyNotDone) {
+        anyNotDone = true;
+        for (Future future : this.futures) {
+          anyNotDone &= future.isDone();
+        }
+        if (this.progressable != null) {
+          this.progressable.progress();
+        }
+        Thread.sleep(1000L);
+      }
 
-	  List etags = new ArrayList();
-	  for (Future future : this.futures) {
-		etags.add(future.get());
-	  }
-	  LOG.debug("About to close multipart upload " + this.uploadId + " with bucket '" + this.bucketName + "' key '"
-		  + this.key + "' and etags '" + etags + "'");
+      List etags = new ArrayList();
+      for (Future future : this.futures) {
+        etags.add(future.get());
+      }
+      LOG.debug("About to close multipart upload " + this.uploadId + " with bucket '" + this.bucketName + "' key '"
+          + this.key + "' and etags '" + etags + "'");
 
-	  this.s3
-		  .completeMultipartUpload(new CompleteMultipartUploadRequest(this.bucketName, this.key, this.uploadId, etags));
-	} catch (Exception e) {
-	  this.s3.abortMultipartUpload(new AbortMultipartUploadRequest(this.bucketName, this.key, this.uploadId));
-	  throw new RuntimeException("Error closing multipart upload", e);
-	}
+      this.s3
+          .completeMultipartUpload(new CompleteMultipartUploadRequest(this.bucketName, this.key, this.uploadId, etags));
+    } catch (Exception e) {
+      this.s3.abortMultipartUpload(new AbortMultipartUploadRequest(this.bucketName, this.key, this.uploadId));
+      throw new RuntimeException("Error closing multipart upload", e);
+    }
   }
 
   public void abort() {
-	for (Future future : this.futures) {
-	  future.cancel(true);
-	}
-	this.s3.abortMultipartUpload(new AbortMultipartUploadRequest(this.bucketName, this.key, this.uploadId));
+    for (Future future : this.futures) {
+      future.cancel(true);
+    }
+    this.s3.abortMultipartUpload(new AbortMultipartUploadRequest(this.bucketName, this.key, this.uploadId));
   }
 
   private void kickOffUpload() throws IOException {
-	this.currentOutput.close();
-	String md5sum = new String(Base64.encodeBase64(this.currentOutput.getMessageDigest().digest()),
-		Charset.forName("UTF-8"));
-	this.futures.add(this.threadPool.submit(new MultipartUploadCallable(this.partCount, this.currentTemp, md5sum)));
+    this.currentOutput.close();
+    String md5sum = new String(Base64.encodeBase64(this.currentOutput.getMessageDigest().digest()),
+        Charset.forName("UTF-8"));
+    this.futures.add(this.threadPool.submit(new MultipartUploadCallable(this.partCount, this.currentTemp, md5sum)));
 
-	setTempFileAndOutput();
+    setTempFileAndOutput();
   }
 
   private long capacityLeft() {
-	return this.partSize - this.currentPartSize;
+    return this.partSize - this.currentPartSize;
   }
 
   private void setTempFileAndOutput() {
-	try {
-	  this.currentPartSize = 0L;
-	  this.currentTemp = new File(this.tempDirs[(this.partCount % this.tempDirs.length)],
-		  "multipart-" + this.uploadId + "-" + this.partCount++);
-	  this.currentOutput = new DigestOutputStream(new BufferedOutputStream(new FileOutputStream(this.currentTemp)),
-		  MessageDigest.getInstance("MD5"));
-	} catch (IOException e) {
-	  throw new RuntimeException("Error creating temporary output stream.", e);
-	} catch (NoSuchAlgorithmException e) {
-	  throw new RuntimeException("Error creating DigestOutputStream", e);
-	}
+    try {
+      this.currentPartSize = 0L;
+      this.currentTemp = new File(this.tempDirs[(this.partCount % this.tempDirs.length)],
+          "multipart-" + this.uploadId + "-" + this.partCount++);
+      this.currentOutput = new DigestOutputStream(new BufferedOutputStream(new FileOutputStream(this.currentTemp)),
+          MessageDigest.getInstance("MD5"));
+    } catch (IOException e) {
+      throw new RuntimeException("Error creating temporary output stream.", e);
+    } catch (NoSuchAlgorithmException e) {
+      throw new RuntimeException("Error creating DigestOutputStream", e);
+    }
   }
 
   private class MultipartUploadCallable implements Callable<PartETag> {
-	private final int partNumber;
-	private final File partFile;
-	private final String md5sum;
+    private final int partNumber;
+    private final File partFile;
+    private final String md5sum;
 
-	public MultipartUploadCallable(int partNumber, File partFile, String md5sum) {
-	  this.partNumber = partNumber;
-	  this.partFile = partFile;
-	  this.md5sum = md5sum;
-	}
+    public MultipartUploadCallable(int partNumber, File partFile, String md5sum) {
+      this.partNumber = partNumber;
+      this.partFile = partFile;
+      this.md5sum = md5sum;
+    }
 
-	public PartETag call() throws Exception {
-	  InputStream is = new ProgressableResettableBufferedFileInputStream(this.partFile,
-		  MultipartUploadOutputStream.this.progressable);
+    public PartETag call() throws Exception {
+      InputStream is = new ProgressableResettableBufferedFileInputStream(this.partFile,
+          MultipartUploadOutputStream.this.progressable);
 
-	  UploadPartRequest request = new UploadPartRequest().withBucketName(MultipartUploadOutputStream.this.bucketName)
-		  .withKey(MultipartUploadOutputStream.this.key).withUploadId(MultipartUploadOutputStream.this.uploadId)
-		  .withInputStream(is).withPartNumber(this.partNumber).withPartSize(this.partFile.length())
-		  .withMD5Digest(this.md5sum);
+      UploadPartRequest request = new UploadPartRequest().withBucketName(MultipartUploadOutputStream.this.bucketName)
+          .withKey(MultipartUploadOutputStream.this.key).withUploadId(MultipartUploadOutputStream.this.uploadId)
+          .withInputStream(is).withPartNumber(this.partNumber).withPartSize(this.partFile.length())
+          .withMD5Digest(this.md5sum);
 
-	  // MetricsSaver.StopWatch stopWatch = new MetricsSaver.StopWatch();
-	  UploadPartResult result;
-	  try {
-		String message = String.format("S3 uploadPart bucket:%s key:%s part:%d size:%d",
-			new Object[] { MultipartUploadOutputStream.this.bucketName, MultipartUploadOutputStream.this.key,
-				Integer.valueOf(this.partNumber), Long.valueOf(this.partFile.length()) });
+      // MetricsSaver.StopWatch stopWatch = new MetricsSaver.StopWatch();
+      UploadPartResult result;
+      try {
+        String message = String.format("S3 uploadPart bucket:%s key:%s part:%d size:%d",
+            new Object[] { MultipartUploadOutputStream.this.bucketName, MultipartUploadOutputStream.this.key,
+                Integer.valueOf(this.partNumber), Long.valueOf(this.partFile.length()) });
 
-		MultipartUploadOutputStream.LOG.info(message);
-		result = MultipartUploadOutputStream.this.s3.uploadPart(request);
-		// MetricsSaver.addValue("S3WriteDelay", stopWatch.elapsedTime());
-		// MetricsSaver.addValue("S3WriteBytes", this.partFile.length());
-	  } catch (Exception e) {
-		// MetricsSaver.addValueWithError("S3WriteDelay", stopWatch.elapsedTime(), e);
-		throw e;
-	  } finally {
-		try {
-		  if (is != null)
-			is.close();
-		} finally {
-		  this.partFile.delete();
-		}
-	  }
+        MultipartUploadOutputStream.LOG.info(message);
+        result = MultipartUploadOutputStream.this.s3.uploadPart(request);
+        // MetricsSaver.addValue("S3WriteDelay", stopWatch.elapsedTime());
+        // MetricsSaver.addValue("S3WriteBytes", this.partFile.length());
+      } catch (Exception e) {
+        // MetricsSaver.addValueWithError("S3WriteDelay", stopWatch.elapsedTime(), e);
+        throw e;
+      } finally {
+        try {
+          if (is != null)
+            is.close();
+        } finally {
+          this.partFile.delete();
+        }
+      }
 
-	  return result.getPartETag();
-	}
+      return result.getPartETag();
+    }
   }
 }
 

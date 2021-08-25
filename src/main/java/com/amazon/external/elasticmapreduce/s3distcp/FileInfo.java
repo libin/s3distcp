@@ -14,23 +14,23 @@ class FileInfo extends WritableStruct implements Cloneable {
   }
 
   public FileInfo(Long fileUID, String inputUri, String outputUri, long fileSize) {
-	this.fileUID = new LongWritable(fileUID.longValue());
-	this.inputFileName = new Text(inputUri);
-	this.outputFileName = new Text(outputUri);
-	this.fileSize = new LongWritable(fileSize);
+    this.fileUID = new LongWritable(fileUID.longValue());
+    this.inputFileName = new Text(inputUri);
+    this.outputFileName = new Text(outputUri);
+    this.fileSize = new LongWritable(fileSize);
   }
 
   public FileInfo clone() {
-	return new FileInfo(Long.valueOf(this.fileUID.get()), this.inputFileName.toString(), this.outputFileName.toString(),
-		this.fileSize.get());
+    return new FileInfo(Long.valueOf(this.fileUID.get()), this.inputFileName.toString(), this.outputFileName.toString(),
+        this.fileSize.get());
   }
 
   public Writable[] getFields() {
-	return new Writable[] { this.fileUID, this.inputFileName, this.outputFileName, this.fileSize };
+    return new Writable[] { this.fileUID, this.inputFileName, this.outputFileName, this.fileSize };
   }
 
   public String toString() {
-	return "{" + this.fileUID + ", '" + this.inputFileName + "', '" + this.outputFileName + "', " + this.fileSize + "}";
+    return "{" + this.fileUID + ", '" + this.inputFileName + "', '" + this.outputFileName + "', " + this.fileSize + "}";
   }
 }
 

@@ -21,45 +21,45 @@ public class GroupFilesMapper implements Mapper<LongWritable, FileInfo, Text, Fi
   private String destDir;
 
   public void configure(JobConf conf) {
-	this.conf = conf;
-	String patternString = conf.get("s3DistCp.listfiles.gropubypattern");
-	if (patternString != null) {
-	  this.pattern = Pattern.compile(patternString);
-	}
-	this.destDir = conf.get("s3DistCp.copyfiles.destDir");
+    this.conf = conf;
+    String patternString = conf.get("s3DistCp.listfiles.gropubypattern");
+    if (patternString != null) {
+      this.pattern = Pattern.compile(patternString);
+    }
+    this.destDir = conf.get("s3DistCp.copyfiles.destDir");
   }
 
   public void close() throws IOException {
   }
 
   public void map(LongWritable fileUID, FileInfo fileInfo, OutputCollector<Text, FileInfo> collector, Reporter reporter)
-	  throws IOException {
-	Text key;
-	try {
-	  String path = new URI(fileInfo.inputFileName.toString()).getPath();
-	  if (path.startsWith(this.destDir)) {
-		path = path.substring(this.destDir.length());
-	  }
-	  key = new Text(path);
-	} catch (URISyntaxException e) {
-	  throw new RuntimeException(
-		  new StringBuilder().append("Bad URI: ").append(fileInfo.inputFileName.toString()).toString(), e);
-	}
+      throws IOException {
+    Text key;
+    try {
+      String path = new URI(fileInfo.inputFileName.toString()).getPath();
+      if (path.startsWith(this.destDir)) {
+        path = path.substring(this.destDir.length());
+      }
+      key = new Text(path);
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(
+          new StringBuilder().append("Bad URI: ").append(fileInfo.inputFileName.toString()).toString(), e);
+    }
 
-	if (this.pattern != null) {
-	  Matcher matcher = this.pattern.matcher(fileInfo.inputFileName.toString());
-	  if (matcher.matches()) {
-		int numGroups = matcher.groupCount();
-		StringBuilder builder = new StringBuilder();
-		for (int i = 0; i < numGroups; i++) {
-		  builder.append(matcher.group(i + 1));
-		}
-		key = new Text(builder.toString());
-	  }
-	}
-	log.debug(new StringBuilder().append("Adding ").append(key.toString()).append(": ")
-		.append(fileInfo.inputFileName.toString()).toString());
-	collector.collect(key, fileInfo);
+    if (this.pattern != null) {
+      Matcher matcher = this.pattern.matcher(fileInfo.inputFileName.toString());
+      if (matcher.matches()) {
+        int numGroups = matcher.groupCount();
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < numGroups; i++) {
+          builder.append(matcher.group(i + 1));
+        }
+        key = new Text(builder.toString());
+      }
+    }
+    log.debug(new StringBuilder().append("Adding ").append(key.toString()).append(": ")
+        .append(fileInfo.inputFileName.toString()).toString());
+    collector.collect(key, fileInfo);
   }
 }
 

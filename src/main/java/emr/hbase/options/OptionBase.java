@@ -5,13 +5,13 @@ public abstract class OptionBase implements Option {
   protected String desc;
 
   public OptionBase(String arg, String desc) {
-	this.arg = arg;
-	this.desc = desc;
+    this.arg = arg;
+    this.desc = desc;
   }
 
   public void require() {
-	if (!defined())
-	  throw new RuntimeException("expected argument " + this.arg);
+    if (!defined())
+      throw new RuntimeException("expected argument " + this.arg);
   }
 }
 

@@ -12,16 +12,16 @@ class CreateFileInfo extends WritableStruct implements Cloneable {
   }
 
   public CreateFileInfo(String fileName, long fileSize) {
-	this.fileName = new Text(fileName);
-	this.fileSize = new LongWritable(fileSize);
+    this.fileName = new Text(fileName);
+    this.fileSize = new LongWritable(fileSize);
   }
 
   public CreateFileInfo clone() {
-	return new CreateFileInfo(this.fileName.toString(), this.fileSize.get());
+    return new CreateFileInfo(this.fileName.toString(), this.fileSize.get());
   }
 
   public Writable[] getFields() {
-	return new Writable[] { this.fileName, this.fileSize };
+    return new Writable[] { this.fileName, this.fileSize };
   }
 }
 

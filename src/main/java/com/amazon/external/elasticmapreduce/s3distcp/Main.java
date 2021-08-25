@@ -9,7 +9,7 @@ public class Main {
   private static final Log log = LogFactory.getLog(S3DistCp.class);
 
   public static void main(String[] args) throws Exception {
-	log.info("Running with args: " + Arrays.toString(args));
+    log.info("Running with args: " + Arrays.toString(args));
 
 	System.exit(ToolRunner.run(new S3DistCp(), args));
   }
