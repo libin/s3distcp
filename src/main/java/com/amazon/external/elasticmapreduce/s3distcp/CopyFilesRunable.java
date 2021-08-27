@@ -31,12 +31,16 @@ class CopyFilesRunable implements Runnable {
   private final CopyFilesReducer reducer;
   private final String tempPath;
   private final Path finalPath;
+  private final boolean groupWithNewLine;
+  private final byte[] newLine = "\n".getBytes();
 
-  public CopyFilesRunable(CopyFilesReducer reducer, List<FileInfo> fileInfos, Path tempPath, Path finalPath) {
+  public CopyFilesRunable(CopyFilesReducer reducer, List<FileInfo> fileInfos, Path tempPath, Path finalPath,
+      boolean groupWithNewLine) {
     this.fileInfos = fileInfos;
     this.reducer = reducer;
     this.tempPath = tempPath.toString();
     this.finalPath = finalPath;
+    this.groupWithNewLine = groupWithNewLine;
     LOG.info("Creating CopyFilesRunnable " + tempPath.toString() + ":" + finalPath.toString());
   }
 
@@ -49,14 +53,19 @@ class CopyFilesRunable implements Runnable {
       while ((len = inputStream.read(buffer)) > 0) {
         md.update(buffer, 0, len);
         outputStream.write(buffer, 0, len);
-        this.reducer.progress();
+        // this.reducer.progress();
         bytesCopied += len;
       }
-      byte[] newLine = "\n".getBytes();
-      md.update(newLine);
-      outputStream.write(newLine);
-      this.reducer.progress();
-      bytesCopied += newLine.length;
+
+      if (groupWithNewLine) {
+        // 最後が改行でなければ改行を追記
+        if (len < 2 || (buffer[len - 2] != newLine[0] || buffer[len - 1] != newLine[1])) {
+          md.update(newLine);
+          outputStream.write(newLine);
+          bytesCopied += 2;
+        }
+      }
+
       // MetricsSaver.addValue("S3DistCpCopyStreamDelay", stopWatch.elapsedTime());
       // MetricsSaver.addValue("S3DistCpCopyStreamBytes", bytesCopied);
     } catch (Exception e) {

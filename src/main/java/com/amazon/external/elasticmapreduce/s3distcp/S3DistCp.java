@@ -256,6 +256,10 @@ public class S3DistCp implements Tool {
       Integer partSize = options.getMultipartUploadPartSize();
       job.setInt("s3DistCp.copyFiles.multipartUploadPartSize", partSize.intValue() * 1024 * 1024);
     }
+    
+    job.setBoolean("s3DistCp.groupWithNewLine", options.getGroupWithNewLine());
+    job.setInt("s3DistCp.numberDeletePartition", options.getNumberDeletePartition());
+
     try {
       if ((options.getCopyFromManifest()) && (options.getPreviousManifest() != null)) {
         for (ManifestEntry entry : options.getPreviousManifest().values())
@@ -356,6 +360,7 @@ public class S3DistCp implements Tool {
     Long filePerMapper;
     String groupByPattern;
     boolean groupWithNewLine = false;
+    Integer numberDeletePartition = 0;
     Integer targetSize;
     String outputCodec = "keep";
     String s3Endpoint;
@@ -383,6 +388,8 @@ public class S3DistCp implements Tool {
           "Place up to this number of files in each map task");
       OptionWithArg groupByPatternOption = options.withArg("--groupBy", "Pattern to group input files by");
       OptionWithArg groupWithNewLineOption = options.withArg("--groupWithNewLine", "Grouping with new line option");
+      OptionWithArg numberDeletePartition = options.withArg("--numberDeletePartition", "Number of delete partitions");
+
       OptionWithArg targetSizeOption = options.withArg("--targetSize", "Target size for output files");
       OptionWithArg outputCodecOption = options.withArg("--outputCodec", "Compression codec for output files");
       OptionWithArg s3EndpointOption = options.withArg("--s3Endpoint", "S3 endpoint to use for uploading files");
@@ -431,6 +438,9 @@ public class S3DistCp implements Tool {
       }
       if (groupWithNewLineOption.defined()) {
         setGroupWithNewLine(Boolean.valueOf(groupWithNewLineOption.value));
+      }
+      if (numberDeletePartition.defined()) {
+        setNumberDeletePartition(Integer.valueOf(numberDeletePartition.value));
       }
 
       if (targetSizeOption.defined()) {
@@ -576,6 +586,14 @@ public class S3DistCp implements Tool {
 
     public void setGroupWithNewLine(boolean a) {
       this.groupWithNewLine = a;
+    }
+
+    public int getNumberDeletePartition() {
+      return this.numberDeletePartition;
+    }
+
+    public void setNumberDeletePartition(int a) {
+      this.numberDeletePartition = a;
     }
 
     public Integer getTargetSize() {

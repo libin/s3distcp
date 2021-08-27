@@ -52,11 +52,12 @@ public class GroupFilesMapper implements Mapper<LongWritable, FileInfo, Text, Fi
         int numGroups = matcher.groupCount();
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < numGroups; i++) {
-          builder.append(matcher.group(i + 1));
+          builder.append(matcher.group(i + 1)).append("__").append(numGroups);
         }
         key = new Text(builder.toString());
       }
     }
+    
     log.debug(new StringBuilder().append("Adding ").append(key.toString()).append(": ")
         .append(fileInfo.inputFileName.toString()).toString());
     collector.collect(key, fileInfo);

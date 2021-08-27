@@ -43,6 +43,8 @@ public class CopyFilesReducer implements Reducer<Text, FileInfo, Text, Text> {
   private boolean deleteOnSuccess;
   private boolean useMultipartUpload;
   private boolean numberFiles;
+  private boolean groupWithNewLine;
+  private int numberDeletePartition;
   private JobConf conf;
 
   public void close() throws IOException {
@@ -95,6 +97,8 @@ public class CopyFilesReducer implements Reducer<Text, FileInfo, Text, Text> {
     this.deleteOnSuccess = conf.getBoolean("s3DistCp.copyFiles.deleteFilesOnSuccess", false);
     this.numTransferRetries = conf.getInt("s3DistCp.copyfiles.mapper.numRetries", 10);
     this.useMultipartUpload = conf.getBoolean("s3DistCp.copyFiles.useMultipartUploads", true);
+    this.groupWithNewLine = conf.getBoolean("s3DistCp.groupWithNewLine", false);
+    this.numberDeletePartition = conf.getInt("s3DistCp.numberDeletePartition", 0);
   }
 
   public int getNumTransferRetries() {
@@ -113,6 +117,8 @@ public class CopyFilesReducer implements Reducer<Text, FileInfo, Text, Text> {
     String[] groupIds = groupId.split("/");
     groupId = groupIds[(groupIds.length - 1)];
 
+    groupIndex = "";
+
     if (this.numberFiles) {
       groupId = fileUid + groupId;
     }
@@ -127,22 +133,23 @@ public class CopyFilesReducer implements Reducer<Text, FileInfo, Text, Text> {
         else
           suffix = groupIndex + "." + this.outputCodec;
       }
-      return finalDir + "/" + Utils.replaceSuffix(groupId, suffix);
+
+      return deleteDir(finalDir, this.numberDeletePartition) + "/" + Utils.replaceSuffix(groupId, suffix);
     }
     String suffix = Utils.getSuffix(groupId);
     if (this.outputCodec.equalsIgnoreCase("gzip") || this.outputCodec.equalsIgnoreCase("gz")) {
       suffix = suffix + ".gz";
     }
-    String name;
-    int i = finalDir.lastIndexOf("/");
-    int i2 = i >= 0 ? i : 0;
-    String finalDir2 = finalDir.substring(0, i2);
-    if (suffix.length() > 0) {
-      name = "monthlydata." + suffix;
-    } else {
-      name = "monthlydata";
+
+    String name = groupId;
+    if (groupIndex.length() > 0) {
+      name = Utils.replaceSuffix(name, groupIndex);
+      if (suffix.length() > 0) {
+        name = name + "." + suffix;
+      }
     }
-    return finalDir2 + "/" + name;
+
+    return deleteDir(finalDir, this.numberDeletePartition) + "/" + name;
   }
 
   public void reduce(Text groupKey, Iterator<FileInfo> fileInfos, OutputCollector<Text, Text> collector,
@@ -190,6 +197,13 @@ public class CopyFilesReducer implements Reducer<Text, FileInfo, Text, Text> {
     }
   }
 
+  private String deleteDir(String pathStr, int l) {
+    for (int i = 0; i < l; i++) {
+      pathStr = pathStr.substring(0, pathStr.lastIndexOf("/"));
+    }
+    return pathStr;
+  }
+
   private void executeDownloads(CopyFilesReducer reducer, List<FileInfo> fileInfos, Path tempPath, Path finalPath) {
     synchronized (this) {
       for (FileInfo fileInfo : fileInfos) {
@@ -199,7 +213,7 @@ public class CopyFilesReducer implements Reducer<Text, FileInfo, Text, Text> {
     }
     if (fileInfos.size() > 0) {
       LOG.info("Processing " + fileInfos.size() + " files");
-      this.transferQueue.execute(new CopyFilesRunable(reducer, fileInfos, tempPath, finalPath));
+      this.transferQueue.execute(new CopyFilesRunable(reducer, fileInfos, tempPath, finalPath, this.groupWithNewLine));
     } else {
       LOG.info("No files to process");
     }
